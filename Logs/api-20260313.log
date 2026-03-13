@@ -1,0 +1,31 @@
+2026-03-13 02:01:01.471 -07:00 [INF] Executed DbCommand (30ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Roles` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.511 -07:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Users` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.522 -07:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Surveys` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.531 -07:00 [INF] Executed DbCommand (8ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.544 -07:00 [INF] Executed DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `SurveyResponses` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.554 -07:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Answers` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.690 -07:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM `Roles` AS `r`)
+2026-03-13 02:01:01.745 -07:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT `r`.`Id`, `r`.`Name`
+FROM `Roles` AS `r`
+WHERE `r`.`Name` = 'Admin'
+LIMIT 1
+2026-03-13 02:01:01.808 -07:00 [INF] Executed DbCommand (18ms) [Parameters=[@__adminRole_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM `Users` AS `u`
+    WHERE `u`.`RoleId` = @__adminRole_Id_0)
+2026-03-13 02:01:01.822 -07:00 [INF] User profile is available. Using 'C:\Users\shari\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-13 02:01:01.864 -07:00 [INF] Now listening on: http://localhost:5008
+2026-03-13 02:01:01.865 -07:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-13 02:01:01.865 -07:00 [INF] Hosting environment: Development
+2026-03-13 02:01:01.865 -07:00 [INF] Content root path: C:\Users\shari\NetProjects\survey
