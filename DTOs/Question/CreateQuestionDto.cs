@@ -8,6 +8,8 @@ public class CreateQuestionDto
     [Required]
     public int SurveyId { get; set; }
 
+    public int? PageId { get; set; }
+
     [Required, MaxLength(2000)]
     public string Text { get; set; } = string.Empty;
 
@@ -15,4 +17,6 @@ public class CreateQuestionDto
     public bool IsRequired { get; set; }
     public int Order { get; set; }
     public string? OptionsJson { get; set; }
+    public ShowIfDto? ShowIf { get; set; }
+    public ValidationDto? Validation { get; set; }
 }

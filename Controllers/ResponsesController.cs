@@ -26,17 +26,19 @@ public class ResponsesController : ControllerBase
         return (userId, isAdmin);
     }
 
-    /// <summary>POST /api/responses — Submit a survey response (no auth required for participants).</summary>
+    /// <summary>POST /api/responses — Submit a survey response (no auth required for participants). Validates against question validation rules.</summary>
     [HttpPost("responses")]
     [ProducesResponseType(typeof(SurveySubmissionResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Submit([FromBody] SubmitSurveyResponseDto dto)
     {
-        var result = await _responseService.SubmitAsync(dto).ConfigureAwait(false);
-        if (result == null)
+        var submitResult = await _responseService.SubmitAsync(dto).ConfigureAwait(false);
+        if (submitResult.ValidationErrors is { Count: > 0 })
+            return BadRequest(new { message = "Validation failed.", errors = submitResult.ValidationErrors });
+        if (submitResult.Result == null)
             return NotFound("Survey not found.");
-        return CreatedAtAction(nameof(GetBySurveyId), new { surveyId = result.SurveyId }, result);
+        return CreatedAtAction(nameof(GetBySurveyId), new { surveyId = submitResult.Result.SurveyId }, submitResult.Result);
     }
 
     /// <summary>GET /api/surveys/{surveyId}/responses — List responses (Admin: any; Researcher: own surveys).</summary>

@@ -9,6 +9,6 @@ namespace SurveyApi.Services;
 public interface IResponseService
 {
     Task<SurveySummaryDto?> GetSurveySummaryAsync(int surveyId, int currentUserId, string currentUserRole);
-    Task<SurveySubmissionResponseDto?> SubmitAsync(SubmitSurveyResponseDto dto);
+    Task<SubmitResultDto> SubmitAsync(SubmitSurveyResponseDto dto);
     Task<IEnumerable<SurveyResponseListItemDto>?> GetBySurveyIdAsync(int surveyId, int? researcherId, bool isAdmin);
 }

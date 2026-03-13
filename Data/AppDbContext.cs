@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Survey> Surveys => Set<Survey>();
+    public DbSet<SurveyPage> SurveyPages => Set<SurveyPage>();
     public DbSet<Question> Questions => Set<Question>();
     public DbSet<SurveyResponse> SurveyResponses => Set<SurveyResponse>();
     public DbSet<Answer> Answers => Set<Answer>();
@@ -51,6 +52,18 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<SurveyPage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).HasMaxLength(500);
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.HasOne(e => e.Survey)
+                .WithMany(s => s.Pages)
+                .HasForeignKey(e => e.SurveyId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => new { e.SurveyId, e.Order });
+        });
+
         modelBuilder.Entity<Question>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -59,6 +72,11 @@ public class AppDbContext : DbContext
                 .WithMany(s => s.Questions)
                 .HasForeignKey(e => e.SurveyId)
                 .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Page)
+                .WithMany(p => p.Questions)
+                .HasForeignKey(e => e.PageId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => new { e.PageId, e.Order });
         });
 
         modelBuilder.Entity<SurveyResponse>(entity =>

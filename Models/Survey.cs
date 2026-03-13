@@ -12,6 +12,7 @@ public class Survey
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public User Researcher { get; set; } = null!;
+    public ICollection<SurveyPage> Pages { get; set; } = new List<SurveyPage>();
     public ICollection<Question> Questions { get; set; } = new List<Question>();
     public ICollection<SurveyResponse> SurveyResponses { get; set; } = new List<SurveyResponse>();
 }
