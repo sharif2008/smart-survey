@@ -1,0 +1,79 @@
+<div class="auth-main">
+  <div class="auth-wrapper v3">
+    <div class="auth-form">
+      <div class="auth-header">
+        <a routerLink="/"><img src="assets/images/logo-dark.svg" alt="Survey Admin Portal" /></a>
+      </div>
+      <div class="card my-5">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-end mb-4">
+            <h3 class="mb-0"><b>Survey Admin Login</b></h3>
+            <a [routerLink]="['/register']" class="link-primary">Don't have an account?</a>
+          </div>
+
+          @if (loginError) {
+            <div class="alert alert-danger py-2" role="alert">
+              {{ loginError }}
+            </div>
+          }
+
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="form-group mb-3">
+              <label class="form-label" for="email">Email</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                formControlName="email"
+                placeholder="admin@admin.com"
+                [class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+              />
+              @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+                <div class="invalid-feedback">
+                  Please enter a valid email.
+                </div>
+              }
+            </div>
+            <div class="form-group mb-3">
+              <label class="form-label" for="password">Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                formControlName="password"
+                placeholder="Password"
+                [class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+              />
+              @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+                <div class="invalid-feedback">
+                  Password is required.
+                </div>
+              }
+            </div>
+            <div class="d-flex mt-1 justify-content-between align-items-center">
+              <div class="form-check">
+                <input class="form-check-input input-primary" type="checkbox" id="keepSignedIn" formControlName="keepSignedIn" />
+                <label class="form-check-label text-muted" for="keepSignedIn">Keep me signed in</label>
+              </div>
+            </div>
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary" [disabled]="loginForm.invalid || loading">
+                {{ loading ? 'Signing in…' : 'Login' }}
+              </button>
+            </div>
+          </form>
+
+          <div class="saprator mt-3">
+            <span>API</span>
+          </div>
+          <p class="text-muted small mb-0">Sign in with your account from the Survey API (e.g. Admin or Researcher).</p>
+        </div>
+      </div>
+      <div class="auth-footer row">
+        <div class="col my-1">
+          <p class="m-0 text-muted small">Survey Admin Portal – backed by Survey API</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

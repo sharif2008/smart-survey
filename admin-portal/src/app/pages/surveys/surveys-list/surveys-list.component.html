@@ -1,0 +1,112 @@
+<div class="row">
+  <div class="col-sm-12">
+    <app-card cardTitle="Surveys">
+      @if (error) {
+        <div class="alert alert-danger">{{ error }}</div>
+      }
+      @if (loading) {
+        <p class="text-muted">Loading surveys…</p>
+      } @else {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="text-muted">{{ surveys.length }} survey(s)</span>
+          <button type="button" class="btn btn-primary" (click)="openCreate()">New Survey</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Created</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of surveys; track s.id) {
+                <tr>
+                  <td>
+                    <a [routerLink]="['/surveys', s.id]">{{ s.title }}</a>
+                  </td>
+                  <td class="text-muted">{{ s.description || '—' }}</td>
+                  <td>{{ formatDate(s.createdAt) }}</td>
+                  <td>
+                    <a [routerLink]="['/surveys', s.id]" class="btn btn-sm btn-light me-1">View</a>
+                    <button type="button" class="btn btn-sm btn-outline-primary me-1" (click)="openEdit(s)">Edit</button>
+                    @if (deleteId === s.id) {
+                      <span class="text-danger me-1">Delete?</span>
+                      <button type="button" class="btn btn-sm btn-danger me-1" (click)="deleteSurvey(s.id)">Yes</button>
+                      <button type="button" class="btn btn-sm btn-secondary" (click)="cancelDelete()">No</button>
+                    } @else {
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDelete(s.id)">Delete</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (surveys.length === 0 && !loading) {
+          <p class="text-muted">No surveys yet. Create one to get started.</p>
+        }
+      }
+    </app-card>
+  </div>
+</div>
+
+@if (createModal) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Survey</h5>
+          <button type="button" class="btn-close" (click)="closeCreate()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" [(ngModel)]="newTitle" placeholder="Survey title" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description (optional)</label>
+            <textarea class="form-control" [(ngModel)]="newDescription" rows="2" placeholder="Description"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeCreate()">Cancel</button>
+          <button type="button" class="btn btn-primary" [disabled]="!newTitle?.trim() || createSaving" (click)="createSurvey()">
+            {{ createSaving ? 'Creating…' : 'Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (editSurvey) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Survey</h5>
+          <button type="button" class="btn-close" (click)="closeEdit()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" [(ngModel)]="newTitle" placeholder="Survey title" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description (optional)</label>
+            <textarea class="form-control" [(ngModel)]="newDescription" rows="2" placeholder="Description"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeEdit()">Cancel</button>
+          <button type="button" class="btn btn-primary" [disabled]="!newTitle?.trim() || editSaving" (click)="saveEdit()">
+            {{ editSaving ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

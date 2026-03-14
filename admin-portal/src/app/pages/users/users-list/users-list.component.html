@@ -1,0 +1,108 @@
+<div class="row">
+  <div class="col-sm-12">
+    <app-card cardTitle="Users">
+      @if (error) {
+        <div class="alert alert-warning">{{ error }}</div>
+      }
+      @if (isAdmin && loading) {
+        <p class="text-muted">Loading users…</p>
+      }
+      @if (isAdmin && !loading && !error) {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="text-muted">{{ users.length }} user(s)</span>
+          <button type="button" class="btn btn-primary" (click)="openCreate()">New user</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Created</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of users; track u.id) {
+                <tr>
+                  <td>{{ u.fullName }}</td>
+                  <td>{{ u.email }}</td>
+                  <td><span class="badge bg-primary">{{ u.role }}</span></td>
+                  <td>{{ formatDate(u.createdAt) }}</td>
+                  <td>
+                    <button type="button" class="btn btn-sm btn-outline-primary me-1" (click)="openEdit(u)">Edit</button>
+                    @if (deleteId === u.id) {
+                      <span class="text-danger me-1">Delete?</span>
+                      <button type="button" class="btn btn-sm btn-danger me-1" (click)="deleteUser(u.id)">Yes</button>
+                      <button type="button" class="btn btn-sm btn-secondary" (click)="cancelDelete()">No</button>
+                    } @else {
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDelete(u.id)">Delete</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (users.length === 0) {
+          <p class="text-muted">No users.</p>
+        }
+      }
+    </app-card>
+  </div>
+</div>
+
+@if (createModal) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New user</h5>
+          <button type="button" class="btn-close" (click)="closeCreate()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">Full name *</label><input type="text" class="form-control" [(ngModel)]="fullName" placeholder="Full name" /></div>
+          <div class="mb-3"><label class="form-label">Email *</label><input type="email" class="form-control" [(ngModel)]="email" placeholder="Email" /></div>
+          <div class="mb-3"><label class="form-label">Password * (min 6)</label><input type="password" class="form-control" [(ngModel)]="password" placeholder="Password" /></div>
+          <div class="mb-3"><label class="form-label">Role</label><select class="form-select" [(ngModel)]="role">
+            @for (r of roles; track r.value) { <option [value]="r.value">{{ r.label }}</option> }
+          </select></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeCreate()">Cancel</button>
+          <button type="button" class="btn btn-primary" [disabled]="!fullName?.trim() || !email?.trim() || !password || password.length < 6 || createSaving" (click)="createUser()">
+            {{ createSaving ? 'Creating…' : 'Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (editUser) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit user</h5>
+          <button type="button" class="btn-close" (click)="closeEdit()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">Full name *</label><input type="text" class="form-control" [(ngModel)]="fullName" /></div>
+          <div class="mb-3"><label class="form-label">Email *</label><input type="email" class="form-control" [(ngModel)]="email" /></div>
+          <div class="mb-3"><label class="form-label">New password * (min 6)</label><input type="password" class="form-control" [(ngModel)]="password" placeholder="Enter new password" /></div>
+          <div class="mb-3"><label class="form-label">Role</label><select class="form-select" [(ngModel)]="role">
+            @for (r of roles; track r.value) { <option [value]="r.value">{{ r.label }}</option> }
+          </select></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeEdit()">Cancel</button>
+          <button type="button" class="btn btn-primary" [disabled]="!fullName?.trim() || !email?.trim() || !password || password.length < 6 || editSaving" (click)="saveEdit()">
+            {{ editSaving ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,318 @@
+<div class="row">
+  <div class="col-sm-12">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <a routerLink="/surveys" class="btn btn-sm btn-light">← Surveys</a>
+    </div>
+    @if (error) {
+      <div class="alert alert-danger">{{ error }}</div>
+    }
+    @if (survey && !error) {
+      <app-card [cardTitle]="survey.title">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <p class="text-muted mb-0">{{ survey.description || 'No description' }}</p>
+            <small class="text-muted">Created {{ formatDate(survey.createdAt) }}</small>
+          </div>
+          <div class="d-flex gap-1">
+            <button type="button" class="btn btn-sm btn-primary" (click)="openAddQuestion()">Create new question</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="openEditSurvey()">Edit survey</button>
+          </div>
+        </div>
+      </app-card>
+
+      <ul class="nav nav-tabs mt-3">
+        <li class="nav-item">
+          <a class="nav-link" [class.active]="activeTab === 'questions'" href="javascript:" (click)="activeTab = 'questions'">Questions</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [class.active]="activeTab === 'pages'" href="javascript:" (click)="activeTab = 'pages'">Pages</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [class.active]="activeTab === 'responses'" href="javascript:" (click)="activeTab = 'responses'">Responses</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [class.active]="activeTab === 'summary'" href="javascript:" (click)="activeTab = 'summary'">Summary</a>
+        </li>
+      </ul>
+
+      @if (activeTab === 'questions') {
+        <app-card cardTitle="Questions" class="mt-3">
+          <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted small">{{ questions.length }} question(s)</span>
+            <button type="button" class="btn btn-primary" (click)="openAddQuestion()">Create new question</button>
+          </div>
+          @if (questions.length === 0) {
+            <div class="text-center py-5 bg-light rounded">
+              <p class="text-muted mb-3">No questions yet. Add your first question to this survey.</p>
+              <button type="button" class="btn btn-primary" (click)="openAddQuestion()">Create new question</button>
+            </div>
+          } @else {
+            <div class="list-group list-group-flush">
+              @for (q of questions; track q.id) {
+                <div class="list-group-item list-group-item-action p-3" (click)="toggleQuestionExpanded(q.id)">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                      <span class="badge bg-secondary me-2">{{ q.order }}</span>
+                      <strong>{{ q.text }}</strong>
+                      <span class="text-muted ms-2 small">({{ questionTypeName[q.type] ?? q.type }}{{ q.isRequired ? ', required' : '' }})</span>
+                      @if (expandedQuestionId === q.id) {
+                        <span class="ms-1 small text-primary">▼</span>
+                      } @else {
+                        <span class="ms-1 small text-muted">▶</span>
+                      }
+                    </div>
+                    <div class="d-flex gap-1" (click)="$event.stopPropagation()">
+                      <button type="button" class="btn btn-sm btn-light" (click)="openEditQuestion(q)">Edit</button>
+                      @if (deleteQuestionId === q.id) {
+                        <span class="text-danger me-1 align-self-center">Delete?</span>
+                        <button type="button" class="btn btn-sm btn-danger" (click)="deleteQuestion(q.id)">Yes</button>
+                        <button type="button" class="btn btn-sm btn-secondary" (click)="cancelDeleteQuestion()">No</button>
+                      } @else {
+                        <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDeleteQuestion(q.id)">Delete</button>
+                      }
+                    </div>
+                  </div>
+                  @if (expandedQuestionId === q.id) {
+                    <div class="mt-3 ps-3 border-start border-2 border-light">
+                      <div class="small text-muted mb-1">Type: {{ questionTypeName[q.type] ?? q.type }} · {{ q.isRequired ? 'Required' : 'Optional' }}</div>
+                      @if (isChoiceQuestion(q)) {
+                        @if (getQuestionOptions(q).length > 0) {
+                          <div class="mb-1 small fw-semibold">Options:</div>
+                          <ul class="list-unstyled mb-0 small">
+                            @for (opt of getQuestionOptions(q); track $index) {
+                              <li class="py-1">{{ $index + 1 }}. {{ opt }}</li>
+                            }
+                          </ul>
+                        } @else {
+                          <div class="small text-muted">No options defined.</div>
+                        }
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </app-card>
+      }
+
+      @if (activeTab === 'pages') {
+        <app-card cardTitle="Pages" class="mt-3">
+          <div class="mb-3">
+            <button type="button" class="btn btn-sm btn-primary" (click)="openAddPage()">Add page</button>
+          </div>
+          @if (pages.length === 0) {
+            <p class="text-muted">No pages yet.</p>
+          } @else {
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Questions</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (p of pages; track p.id) {
+                    <tr>
+                      <td>{{ p.order }}</td>
+                      <td>{{ p.title || '—' }}</td>
+                      <td class="text-muted">{{ p.description || '—' }}</td>
+                      <td>{{ p.questions?.length ?? 0 }}</td>
+                      <td>
+                        <button type="button" class="btn btn-sm btn-light me-1" (click)="openEditPage(p)">Edit</button>
+                        @if (deletePageId === p.id) {
+                          <span class="text-danger me-1">Delete?</span>
+                          <button type="button" class="btn btn-sm btn-danger me-1" (click)="deletePage(p.id)">Yes</button>
+                          <button type="button" class="btn btn-sm btn-secondary" (click)="cancelDeletePage()">No</button>
+                        } @else {
+                          <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDeletePage(p.id)">Delete</button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </app-card>
+      }
+
+      @if (activeTab === 'responses') {
+        <app-card cardTitle="Responses" class="mt-3">
+          @if (responses.length === 0) {
+            <p class="text-muted">No responses yet.</p>
+          } @else {
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Participant</th>
+                    <th>Submitted</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of responses; track r.id) {
+                    <tr>
+                      <td>{{ r.participantName || '—' }}</td>
+                      <td>{{ formatDate(r.submittedAt) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </app-card>
+      }
+
+      @if (activeTab === 'summary') {
+        <app-card cardTitle="Summary" class="mt-3">
+          @if (summary) {
+            <p><strong>Total responses:</strong> {{ summary.totalResponses }}</p>
+            <p class="text-muted small">Generated {{ formatDate(summary.generatedAt) }}</p>
+            @if (summary.questions.length > 0) {
+              <hr />
+              <h6>By question</h6>
+              @for (qs of summary.questions; track qs.questionId) {
+                <div class="mb-3">
+                  <strong>{{ qs.questionText }}</strong>
+                  <span class="text-muted"> ({{ qs.totalAnswers }} answers)</span>
+                  <pre class="bg-light p-2 rounded small mb-0">{{ qs.summary | json }}</pre>
+                </div>
+              }
+            }
+          } @else {
+            <p class="text-muted">No summary available.</p>
+          }
+        </app-card>
+      }
+    }
+  </div>
+</div>
+
+<!-- Edit survey modal -->
+@if (editSurveyModal) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Edit survey</h5><button type="button" class="btn-close" (click)="closeEditSurvey()"></button></div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" [(ngModel)]="editTitle" /></div>
+          <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" [(ngModel)]="editDescription" rows="2"></textarea></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeEditSurvey()">Cancel</button>
+          <button type="button" class="btn btn-primary" [disabled]="!editTitle?.trim() || editSurveySaving" (click)="saveEditSurvey()">{{ editSurveySaving ? 'Saving…' : 'Save' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Add page modal -->
+@if (addPageModal) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Add page</h5><button type="button" class="btn-close" (click)="closeAddPage()"></button></div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" [(ngModel)]="pageTitle" placeholder="Page title" /></div>
+          <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" [(ngModel)]="pageDescription" rows="2"></textarea></div>
+          <div class="mb-3"><label class="form-label">Order</label><input type="number" class="form-control" [(ngModel)]="pageOrder" min="0" /></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeAddPage()">Cancel</button>
+          <button type="button" class="btn btn-primary" [disabled]="addPageSaving" (click)="saveAddPage()">{{ addPageSaving ? 'Adding…' : 'Add' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit page modal -->
+@if (editPageModal) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Edit page</h5><button type="button" class="btn-close" (click)="closeEditPage()"></button></div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" [(ngModel)]="editPageTitle" /></div>
+          <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" [(ngModel)]="editPageDescription" rows="2"></textarea></div>
+          <div class="mb-3"><label class="form-label">Order</label><input type="number" class="form-control" [(ngModel)]="editPageOrder" min="0" /></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeEditPage()">Cancel</button>
+          <button type="button" class="btn btn-primary" [disabled]="editPageSaving" (click)="saveEditPage()">{{ editPageSaving ? 'Saving…' : 'Save' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Add question modal -->
+@if (addQuestionModal) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Add question</h5><button type="button" class="btn-close" (click)="closeAddQuestion()"></button></div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">Text *</label><input type="text" class="form-control" [(ngModel)]="qText" placeholder="Question text" /></div>
+          <div class="mb-3"><label class="form-label">Type</label><select class="form-select" [(ngModel)]="qType">
+            @for (t of questionTypes; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+          </select></div>
+          @if (showQOptions) {
+            <div class="mb-3">
+              <label class="form-label">Options (one per line)</label>
+              <textarea class="form-control" [(ngModel)]="qOptionsInput" rows="4" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+              <small class="text-muted">One choice per line for Single/Multiple choice</small>
+            </div>
+          }
+          <div class="mb-3"><label class="form-label">Order</label><input type="number" class="form-control" [(ngModel)]="qOrder" min="0" /></div>
+          <div class="form-check mb-2"><input type="checkbox" class="form-check-input" id="qRequired" [(ngModel)]="qRequired" /><label class="form-check-label" for="qRequired">Required</label></div>
+          @if (pages.length > 0) {
+            <div class="mb-3 mt-2"><label class="form-label">Page</label><select class="form-select" [(ngModel)]="qPageId">
+              <option [ngValue]="null">—</option>
+              @for (p of pages; track p.id) { <option [ngValue]="p.id">{{ p.title || 'Page ' + p.order }}</option> }
+            </select></div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeAddQuestion()">Cancel</button>
+          <button type="button" class="btn btn-primary" [disabled]="!qText?.trim() || addQuestionSaving" (click)="saveAddQuestion()">{{ addQuestionSaving ? 'Adding…' : 'Add' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit question modal -->
+@if (editQuestionModal) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Edit question</h5><button type="button" class="btn-close" (click)="closeEditQuestion()"></button></div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">Text *</label><input type="text" class="form-control" [(ngModel)]="editQText" /></div>
+          <div class="mb-3"><label class="form-label">Type</label><select class="form-select" [(ngModel)]="editQType">
+            @for (t of questionTypes; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+          </select></div>
+          @if (showEditQOptions) {
+            <div class="mb-3">
+              <label class="form-label">Options (one per line)</label>
+              <textarea class="form-control" [(ngModel)]="editQOptionsInput" rows="4" placeholder="Option 1&#10;Option 2"></textarea>
+            </div>
+          }
+          <div class="mb-3"><label class="form-label">Order</label><input type="number" class="form-control" [(ngModel)]="editQOrder" min="0" /></div>
+          <div class="form-check mb-2"><input type="checkbox" class="form-check-input" id="editQRequired" [(ngModel)]="editQRequired" /><label class="form-check-label" for="editQRequired">Required</label></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeEditQuestion()">Cancel</button>
+          <button type="button" class="btn btn-primary" [disabled]="!editQText?.trim() || editQuestionSaving" (click)="saveEditQuestion()">{{ editQuestionSaving ? 'Saving…' : 'Save' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
