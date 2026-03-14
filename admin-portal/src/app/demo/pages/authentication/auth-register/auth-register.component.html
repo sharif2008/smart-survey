@@ -47,7 +47,7 @@
               }
             </div>
             <div class="form-group mb-3">
-              <label class="form-label" for="password">Password *</label>
+              <label class="form-label" for="password">Create new password *</label>
               <input
                 type="password"
                 class="form-control"
@@ -58,6 +58,23 @@
               />
               @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
                 <div class="invalid-feedback">Password must be at least 6 characters.</div>
+              }
+            </div>
+            <div class="form-group mb-3">
+              <label class="form-label" for="confirmPassword">Confirm password *</label>
+              <input
+                type="password"
+                class="form-control"
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                placeholder="Re-enter password"
+                [class.is-invalid]="(registerForm.get('confirmPassword')?.invalid || registerForm.errors?.['passwordMismatch']) && registerForm.get('confirmPassword')?.touched"
+              />
+              @if (registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched && !registerForm.errors?.['passwordMismatch']) {
+                <div class="invalid-feedback">Please confirm your password.</div>
+              }
+              @if (registerForm.errors?.['passwordMismatch'] && registerForm.get('confirmPassword')?.touched) {
+                <div class="invalid-feedback d-block">Passwords do not match.</div>
               }
             </div>
             <div class="form-group mb-3">

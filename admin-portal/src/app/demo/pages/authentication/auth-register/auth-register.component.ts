@@ -1,7 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../../core/auth.service';
+
+function passwordMatchValidator(control: AbstractControl): { passwordMismatch: true } | null {
+  const password = control.get('password')?.value;
+  const confirmPassword = control.get('confirmPassword')?.value;
+  if (password != null && confirmPassword != null && password !== confirmPassword) {
+    return { passwordMismatch: true };
+  }
+  return null;
+}
 
 @Component({
   selector: 'app-auth-register',
@@ -23,12 +32,16 @@ export class AuthRegisterComponent implements OnInit {
     private auth: AuthService,
     private router: Router
   ) {
-    this.registerForm = this.fb.nonNullable.group({
-      fullName: ['', [Validators.required, Validators.maxLength(200)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      role: ['Researcher' as const, Validators.required]
-    });
+    this.registerForm = this.fb.nonNullable.group(
+      {
+        fullName: ['', [Validators.required, Validators.maxLength(200)]],
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        confirmPassword: ['', [Validators.required]],
+        role: ['Researcher' as const, Validators.required]
+      },
+      { validators: passwordMatchValidator }
+    );
   }
 
   ngOnInit(): void {
@@ -44,7 +57,7 @@ export class AuthRegisterComponent implements OnInit {
       return;
     }
     this.loading = true;
-    const dto = this.registerForm.getRawValue();
+    const { confirmPassword: _, ...dto } = this.registerForm.getRawValue();
     this.auth.register(dto).subscribe({
       next: (result) => {
         this.loading = false;
