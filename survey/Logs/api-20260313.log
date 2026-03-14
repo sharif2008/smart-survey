@@ -1,0 +1,238 @@
+2026-03-13 02:01:01.471 -07:00 [INF] Executed DbCommand (30ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Roles` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.511 -07:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Users` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.522 -07:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Surveys` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.531 -07:00 [INF] Executed DbCommand (8ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.544 -07:00 [INF] Executed DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `SurveyResponses` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.554 -07:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Answers` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 02:01:01.690 -07:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM `Roles` AS `r`)
+2026-03-13 02:01:01.745 -07:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT `r`.`Id`, `r`.`Name`
+FROM `Roles` AS `r`
+WHERE `r`.`Name` = 'Admin'
+LIMIT 1
+2026-03-13 02:01:01.808 -07:00 [INF] Executed DbCommand (18ms) [Parameters=[@__adminRole_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM `Users` AS `u`
+    WHERE `u`.`RoleId` = @__adminRole_Id_0)
+2026-03-13 02:01:01.822 -07:00 [INF] User profile is available. Using 'C:\Users\shari\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-13 02:01:01.864 -07:00 [INF] Now listening on: http://localhost:5008
+2026-03-13 02:01:01.865 -07:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-13 02:01:01.865 -07:00 [INF] Hosting environment: Development
+2026-03-13 02:01:01.865 -07:00 [INF] Content root path: C:\Users\shari\NetProjects\survey
+2026-03-13 02:20:19.159 -07:00 [INF] Application is shutting down...
+2026-03-13 02:29:23.956 -07:00 [INF] Executed DbCommand (8ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='surveydb' AND TABLE_NAME='__EFMigrationsHistory';
+2026-03-13 02:29:24.000 -07:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='surveydb' AND TABLE_NAME='__EFMigrationsHistory';
+2026-03-13 02:29:24.019 -07:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT `MigrationId`, `ProductVersion`
+FROM `__EFMigrationsHistory`
+ORDER BY `MigrationId`;
+2026-03-13 02:29:24.030 -07:00 [INF] Applying migration '20260313092829_AddSurveyPages'.
+2026-03-13 02:29:24.127 -07:00 [INF] Executed DbCommand (24ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Users` MODIFY COLUMN `PasswordHash` longtext CHARACTER SET utf8mb4 NOT NULL;
+2026-03-13 02:29:24.143 -07:00 [INF] Executed DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Users` MODIFY COLUMN `FullName` varchar(200) CHARACTER SET utf8mb4 NOT NULL;
+2026-03-13 02:29:24.159 -07:00 [INF] Executed DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Users` MODIFY COLUMN `Email` varchar(256) CHARACTER SET utf8mb4 NOT NULL;
+2026-03-13 02:29:24.174 -07:00 [INF] Executed DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Users` MODIFY COLUMN `CreatedAt` datetime(6) NOT NULL;
+2026-03-13 02:29:24.190 -07:00 [INF] Executed DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Users` MODIFY COLUMN `Id` int NOT NULL AUTO_INCREMENT;
+2026-03-13 02:29:24.210 -07:00 [INF] Executed DbCommand (20ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Surveys` MODIFY COLUMN `Title` varchar(500) CHARACTER SET utf8mb4 NOT NULL;
+2026-03-13 02:29:24.230 -07:00 [INF] Executed DbCommand (20ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Surveys` MODIFY COLUMN `Description` longtext CHARACTER SET utf8mb4 NULL;
+2026-03-13 02:29:24.252 -07:00 [INF] Executed DbCommand (22ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Surveys` MODIFY COLUMN `CreatedAt` datetime(6) NOT NULL;
+2026-03-13 02:29:24.271 -07:00 [INF] Executed DbCommand (19ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Surveys` MODIFY COLUMN `Id` int NOT NULL AUTO_INCREMENT;
+2026-03-13 02:29:24.288 -07:00 [INF] Executed DbCommand (17ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `SurveyResponses` MODIFY COLUMN `SubmittedAt` datetime(6) NOT NULL;
+2026-03-13 02:29:24.298 -07:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `SurveyResponses` MODIFY COLUMN `ParticipantName` varchar(200) CHARACTER SET utf8mb4 NULL;
+2026-03-13 02:29:24.313 -07:00 [INF] Executed DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `SurveyResponses` MODIFY COLUMN `Id` int NOT NULL AUTO_INCREMENT;
+2026-03-13 02:29:24.327 -07:00 [INF] Executed DbCommand (13ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Roles` MODIFY COLUMN `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL;
+2026-03-13 02:29:24.343 -07:00 [INF] Executed DbCommand (13ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Roles` MODIFY COLUMN `Id` int NOT NULL AUTO_INCREMENT;
+2026-03-13 02:29:24.360 -07:00 [INF] Executed DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` MODIFY COLUMN `Text` varchar(2000) CHARACTER SET utf8mb4 NOT NULL;
+2026-03-13 02:29:24.372 -07:00 [INF] Executed DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` MODIFY COLUMN `OptionsJson` longtext CHARACTER SET utf8mb4 NULL;
+2026-03-13 02:29:24.386 -07:00 [INF] Executed DbCommand (14ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` MODIFY COLUMN `IsRequired` tinyint(1) NOT NULL;
+2026-03-13 02:29:24.409 -07:00 [INF] Executed DbCommand (22ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` MODIFY COLUMN `Id` int NOT NULL AUTO_INCREMENT;
+2026-03-13 02:29:24.451 -07:00 [INF] Executed DbCommand (42ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE `SurveyPages` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `SurveyId` int NOT NULL,
+    `Title` varchar(500) CHARACTER SET utf8mb4 NULL,
+    `Description` varchar(2000) CHARACTER SET utf8mb4 NULL,
+    `Order` int NOT NULL,
+    CONSTRAINT `PK_SurveyPages` PRIMARY KEY (`Id`),
+    CONSTRAINT `FK_SurveyPages_Surveys_SurveyId` FOREIGN KEY (`SurveyId`) REFERENCES `Surveys` (`Id`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4;
+2026-03-13 02:29:24.485 -07:00 [INF] Executed DbCommand (34ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX `IX_SurveyPages_SurveyId_Order` ON `SurveyPages` (`SurveyId`, `Order`);
+2026-03-13 02:29:24.569 -07:00 [INF] Executed DbCommand (84ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` ADD `PageId` int NULL;
+2026-03-13 02:29:24.574 -07:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+                INSERT INTO SurveyPages (SurveyId, Title, Description, `Order`)
+                SELECT Id, NULL, NULL, 1 FROM Surveys;
+                UPDATE Questions q
+                INNER JOIN SurveyPages p ON p.SurveyId = q.SurveyId AND p.`Order` = 1
+                SET q.PageId = p.Id;
+2026-03-13 02:29:24.651 -07:00 [INF] Executed DbCommand (77ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` MODIFY COLUMN `PageId` int NOT NULL;
+2026-03-13 02:29:24.663 -07:00 [INF] Executed DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Answers` MODIFY COLUMN `ResponseText` varchar(4000) CHARACTER SET utf8mb4 NULL;
+2026-03-13 02:29:24.677 -07:00 [INF] Executed DbCommand (13ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Answers` MODIFY COLUMN `Id` int NOT NULL AUTO_INCREMENT;
+2026-03-13 02:29:24.702 -07:00 [INF] Executed DbCommand (25ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX `IX_Questions_PageId_Order` ON `Questions` (`PageId`, `Order`);
+2026-03-13 02:29:24.808 -07:00 [INF] Executed DbCommand (105ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` ADD CONSTRAINT `FK_Questions_SurveyPages_PageId` FOREIGN KEY (`PageId`) REFERENCES `SurveyPages` (`Id`) ON DELETE CASCADE;
+2026-03-13 02:29:24.812 -07:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260313092829_AddSurveyPages', '8.0.11');
+2026-03-13 02:40:44.925 -07:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='surveydb' AND TABLE_NAME='__EFMigrationsHistory';
+2026-03-13 02:40:44.967 -07:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='surveydb' AND TABLE_NAME='__EFMigrationsHistory';
+2026-03-13 02:40:44.982 -07:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT `MigrationId`, `ProductVersion`
+FROM `__EFMigrationsHistory`
+ORDER BY `MigrationId`;
+2026-03-13 02:40:44.993 -07:00 [INF] No migrations were applied. The database is already up to date.
+2026-03-13 02:48:13.064 -07:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='surveydb' AND TABLE_NAME='__EFMigrationsHistory';
+2026-03-13 02:48:13.112 -07:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='surveydb' AND TABLE_NAME='__EFMigrationsHistory';
+2026-03-13 02:48:13.132 -07:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT `MigrationId`, `ProductVersion`
+FROM `__EFMigrationsHistory`
+ORDER BY `MigrationId`;
+2026-03-13 02:48:13.146 -07:00 [INF] Applying migration '20260313094753_AddShowIfToQuestions'.
+2026-03-13 02:48:13.294 -07:00 [INF] Executed DbCommand (88ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` ADD `ShowIfJson` longtext CHARACTER SET utf8mb4 NULL;
+2026-03-13 02:48:13.298 -07:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260313094753_AddShowIfToQuestions', '8.0.11');
+2026-03-13 02:52:53.154 -07:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='surveydb' AND TABLE_NAME='__EFMigrationsHistory';
+2026-03-13 02:52:53.204 -07:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='surveydb' AND TABLE_NAME='__EFMigrationsHistory';
+2026-03-13 02:52:53.223 -07:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT `MigrationId`, `ProductVersion`
+FROM `__EFMigrationsHistory`
+ORDER BY `MigrationId`;
+2026-03-13 02:52:53.236 -07:00 [INF] Applying migration '20260313095246_AddValidationToQuestions'.
+2026-03-13 02:52:53.392 -07:00 [INF] Executed DbCommand (97ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` ADD `ValidationJson` longtext CHARACTER SET utf8mb4 NULL;
+2026-03-13 02:52:53.395 -07:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260313095246_AddValidationToQuestions', '8.0.11');
+2026-03-13 03:19:46.209 -07:00 [INF] Executed DbCommand (5ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='surveydb' AND TABLE_NAME='__EFMigrationsHistory';
+2026-03-13 03:19:46.249 -07:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='surveydb' AND TABLE_NAME='__EFMigrationsHistory';
+2026-03-13 03:19:46.265 -07:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT `MigrationId`, `ProductVersion`
+FROM `__EFMigrationsHistory`
+ORDER BY `MigrationId`;
+2026-03-13 03:19:46.276 -07:00 [INF] No migrations were applied. The database is already up to date.
+2026-03-13 03:21:40.286 -07:00 [INF] Executed DbCommand (68ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Roles` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:21:40.346 -07:00 [INF] Executed DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Users` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:21:40.364 -07:00 [INF] Executed DbCommand (17ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Surveys` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:21:40.390 -07:00 [INF] Executed DbCommand (25ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:21:40.404 -07:00 [INF] Executed DbCommand (14ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `SurveyResponses` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:21:40.415 -07:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Answers` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:21:40.638 -07:00 [INF] Executed DbCommand (7ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM `Roles` AS `r`)
+2026-03-13 03:21:40.722 -07:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT `r`.`Id`, `r`.`Name`
+FROM `Roles` AS `r`
+WHERE `r`.`Name` = 'Admin'
+LIMIT 1
+2026-03-13 03:21:40.821 -07:00 [INF] Executed DbCommand (28ms) [Parameters=[@__adminRole_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM `Users` AS `u`
+    WHERE `u`.`RoleId` = @__adminRole_Id_0)
+2026-03-13 03:21:40.839 -07:00 [INF] User profile is available. Using 'C:\Users\shari\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-13 03:21:40.900 -07:00 [INF] Now listening on: http://localhost:5008
+2026-03-13 03:21:40.902 -07:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-13 03:21:40.902 -07:00 [INF] Hosting environment: Development
+2026-03-13 03:21:40.903 -07:00 [INF] Content root path: C:\Users\shari\NetProjects\survey
+2026-03-13 03:21:57.350 -07:00 [INF] Request starting HTTP/1.1 GET http://localhost:5008/swagger/index.html - null null
+2026-03-13 03:21:57.609 -07:00 [INF] HTTP GET /swagger/index.html responded 200 in 202.4334 ms
+2026-03-13 03:21:57.612 -07:00 [INF] Request finished HTTP/1.1 GET http://localhost:5008/swagger/index.html - 200 null text/html;charset=utf-8 268.4166ms
+2026-03-13 03:21:58.115 -07:00 [INF] Request starting HTTP/1.1 GET http://localhost:5008/swagger/v1/swagger.json - null null
+2026-03-13 03:21:58.802 -07:00 [INF] HTTP GET /swagger/v1/swagger.json responded 200 in 685.3040 ms
+2026-03-13 03:21:58.803 -07:00 [INF] Request finished HTTP/1.1 GET http://localhost:5008/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 688.0634ms
+2026-03-13 03:27:37.135 -07:00 [INF] Request starting HTTP/1.1 GET http://localhost:5008/swagger/index.html - null null
+2026-03-13 03:27:37.136 -07:00 [INF] HTTP GET /swagger/index.html responded 200 in 1.5477 ms
+2026-03-13 03:27:37.137 -07:00 [INF] Request finished HTTP/1.1 GET http://localhost:5008/swagger/index.html - 200 null text/html;charset=utf-8 2.016ms
+2026-03-13 03:27:37.317 -07:00 [INF] Request starting HTTP/1.1 GET http://localhost:5008/swagger/v1/swagger.json - null null
+2026-03-13 03:27:37.987 -07:00 [INF] HTTP GET /swagger/v1/swagger.json responded 200 in 669.4129 ms
+2026-03-13 03:27:37.992 -07:00 [INF] Request finished HTTP/1.1 GET http://localhost:5008/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 674.5647ms
+2026-03-13 03:27:53.553 -07:00 [INF] Application is shutting down...
+2026-03-13 03:28:05.299 -07:00 [INF] Executed DbCommand (38ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Roles` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:28:05.353 -07:00 [INF] Executed DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Users` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:28:05.372 -07:00 [INF] Executed DbCommand (18ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Surveys` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:28:05.391 -07:00 [INF] Executed DbCommand (19ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Questions` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:28:05.406 -07:00 [INF] Executed DbCommand (14ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `SurveyResponses` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:28:05.417 -07:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE `Answers` MODIFY COLUMN `Id` INT NOT NULL AUTO_INCREMENT
+2026-03-13 03:28:05.639 -07:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM `Roles` AS `r`)
+2026-03-13 03:28:05.726 -07:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT `r`.`Id`, `r`.`Name`
+FROM `Roles` AS `r`
+WHERE `r`.`Name` = 'Admin'
+LIMIT 1
+2026-03-13 03:28:05.819 -07:00 [INF] Executed DbCommand (26ms) [Parameters=[@__adminRole_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM `Users` AS `u`
+    WHERE `u`.`RoleId` = @__adminRole_Id_0)
+2026-03-13 03:28:05.878 -07:00 [INF] User profile is available. Using 'C:\Users\shari\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-13 03:28:05.953 -07:00 [INF] Now listening on: http://localhost:5008
+2026-03-13 03:28:05.954 -07:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-13 03:28:05.954 -07:00 [INF] Hosting environment: Development
+2026-03-13 03:28:05.954 -07:00 [INF] Content root path: C:\Users\shari\NetProjects\survey
+2026-03-13 03:33:12.453 -07:00 [INF] Request starting HTTP/1.1 GET http://localhost:5008/swagger/index.html - null null
+2026-03-13 03:33:15.449 -07:00 [INF] HTTP GET /swagger/index.html responded 200 in 2590.2539 ms
+2026-03-13 03:33:15.565 -07:00 [INF] Request finished HTTP/1.1 GET http://localhost:5008/swagger/index.html - 200 null text/html;charset=utf-8 3115.9971ms
+2026-03-13 03:33:15.689 -07:00 [INF] Request starting HTTP/1.1 GET http://localhost:5008/swagger/v1/swagger.json - null null
+2026-03-13 03:33:16.189 -07:00 [INF] HTTP GET /swagger/v1/swagger.json responded 200 in 499.5274 ms
+2026-03-13 03:33:16.190 -07:00 [INF] Request finished HTTP/1.1 GET http://localhost:5008/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 500.6345ms
