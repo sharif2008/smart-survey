@@ -127,6 +127,12 @@ namespace SurveyApi.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime?>("EndsAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<int>("ResearcherId")
                         .HasColumnType("int");
 

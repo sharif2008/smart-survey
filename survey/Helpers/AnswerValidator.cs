@@ -42,12 +42,14 @@ public static class AnswerValidator
             }
         }
 
-        if (question.Type == QuestionType.Number || question.Type == QuestionType.Rating)
+        if (question.Type == QuestionType.Number || question.Type == QuestionType.Rating || question.Type == QuestionType.NetPromoterScore)
         {
             if (!decimal.TryParse(responseText, out var num))
                 errors.Add($"Question {question.Id}: must be a number.");
             else
             {
+                if (question.Type == QuestionType.NetPromoterScore && (num < 0 || num > 10))
+                    errors.Add($"Question {question.Id}: NPS must be between 0 and 10.");
                 if (validation.MinNumber.HasValue && num < validation.MinNumber.Value)
                     errors.Add($"Question {question.Id}: minimum value is {validation.MinNumber}.");
                 if (validation.MaxNumber.HasValue && num > validation.MaxNumber.Value)
@@ -68,7 +70,7 @@ public static class AnswerValidator
             }
         }
 
-        if ((question.Type == QuestionType.SingleChoice || question.Type == QuestionType.MultipleChoice) && (validation.OptionMustExist == true || validation.MaxSelectionCount.HasValue) && !string.IsNullOrEmpty(question.OptionsJson))
+        if ((question.Type == QuestionType.SingleChoice || question.Type == QuestionType.MultipleChoice || question.Type == QuestionType.Ranking) && (validation.OptionMustExist == true || validation.MaxSelectionCount.HasValue || question.Type == QuestionType.Ranking) && !string.IsNullOrEmpty(question.OptionsJson))
         {
             HashSet<string>? options = null;
             try
@@ -91,6 +93,22 @@ public static class AnswerValidator
             }
             if (question.Type == QuestionType.MultipleChoice && validation.MaxSelectionCount.HasValue && selections.Count > validation.MaxSelectionCount.Value)
                 errors.Add($"Question {question.Id}: maximum {validation.MaxSelectionCount} selection(s) allowed.");
+            if (question.Type == QuestionType.Ranking && options != null)
+            {
+                if (selections.Count != options.Count)
+                    errors.Add($"Question {question.Id}: rank all options exactly once.");
+                else
+                {
+                    foreach (var s in selections)
+                    {
+                        if (!options.Contains(s))
+                        {
+                            errors.Add($"Question {question.Id}: ranking must contain only the given options.");
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         return errors;

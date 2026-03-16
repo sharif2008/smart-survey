@@ -1,3 +1,3 @@
 # Layouts
 
-Demo layouts for Survey Admin Portal.
+Demo layouts for SurveyMind.

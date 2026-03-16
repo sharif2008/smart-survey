@@ -1,0 +1,119 @@
+<div class="public-survey">
+  @if (loading) {
+    <div class="loading-state text-center">
+      <div class="spinner-border text-primary mb-3" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="text-muted mb-0">Preparing your survey…</p>
+    </div>
+  }
+  @if (error) {
+    <div class="alert alert-danger mx-auto public-alert">{{ error }}</div>
+  }
+  @if (!loading && survey && !error) {
+    @if (submitted) {
+      <div class="thank-you-card card shadow-sm mx-auto animate-in">
+        <div class="card-body text-center">
+          <div class="thank-you-icon mb-3">
+            <span class="check-circle">
+              ✓
+            </span>
+          </div>
+          <h2 class="card-title h4 mb-2">Thank you for your time</h2>
+          <p class="text-muted mb-0">Your response has been submitted successfully.</p>
+        </div>
+      </div>
+    } @else {
+      <div class="survey-form-card card shadow-sm mx-auto animate-in">
+        <div class="card-body">
+          <div class="survey-header d-flex justify-content-between align-items-start mb-3">
+            <div class="brand-stack">
+              <div class="brand-pill">
+                <span class="brand-mark">S</span>
+                <span class="brand-text">SurveyMind</span>
+              </div>
+              <div>
+                <h1 class="h4 mb-1">{{ survey.title }}</h1>
+                @if (survey.description) {
+                  <p class="text-muted small mb-0">{{ survey.description }}</p>
+                }
+              </div>
+            </div>
+            <div class="badge bg-light text-muted small px-2 py-1 rounded-pill">
+              Page {{ currentPageIndex + 1 }} / {{ pagesWithQuestions.length }}
+            </div>
+          </div>
+
+          <div class="progress progress-thin mb-3" aria-hidden="true">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              [style.width.%]="((currentPageIndex + 1) / (pagesWithQuestions.length || 1)) * 100"
+            ></div>
+          </div>
+
+          @if (currentPageData) {
+            <div class="page-header mb-3">
+              @if (currentPageData.page.title) {
+                <h2 class="h6 text-secondary">{{ currentPageData.page.title }}</h2>
+              }
+              @if (currentPageData.page.description) {
+                <p class="small text-muted mb-0">{{ currentPageData.page.description }}</p>
+              }
+            </div>
+            <div class="questions">
+              @for (q of currentPageData.questions; track q.id) {
+                <div class="question-card">
+                  <app-survey-question-renderer
+                    [question]="q"
+                    [value]="answers[q.id]"
+                    (valueChange)="setAnswer(q.id, $event)"
+                  />
+                </div>
+              }
+            </div>
+            @if (submitError.length) {
+              <div class="alert alert-danger py-2 small mt-2">
+                <ul class="mb-0 ps-3">
+                  @for (msg of submitError; track msg) {
+                    <li>{{ msg }}</li>
+                  }
+                </ul>
+              </div>
+            }
+            <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+              <div>
+                @if (currentPageIndex > 0) {
+                  <button type="button" class="btn btn-outline-secondary" (click)="previous()">Previous</button>
+                }
+              </div>
+              <div class="d-flex gap-2 align-items-center">
+                @if (isLastPage) {
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-elevated"
+                    [disabled]="!canGoNext || submitting"
+                    (click)="submit()"
+                  >
+                    {{ submitting ? 'Submitting…' : 'Submit response' }}
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-elevated"
+                    [disabled]="!canGoNext"
+                    (click)="next()"
+                  >
+                    Next page
+                  </button>
+                }
+              </div>
+            </div>
+          } @else if (pagesWithQuestions.length === 0) {
+            <p class="text-muted mb-0">This survey has no questions yet.</p>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

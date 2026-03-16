@@ -4,6 +4,7 @@ import { CommonModule, Location, LocationStrategy } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 // project import
+import { APP_BRAND } from 'src/app/app-config';
 import { NavigationItem, NavigationItems } from '../navigation';
 import { environment } from 'src/environments/environment';
 
@@ -41,7 +42,7 @@ export class NavContentComponent implements OnInit {
   navigations: NavigationItem[];
 
   // version
-  title = 'Demo application for version numbering';
+  title = APP_BRAND;
   currentApplicationVersion = environment.appVersion;
 
   navigation = NavigationItems;

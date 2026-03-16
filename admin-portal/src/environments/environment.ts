@@ -7,7 +7,8 @@ import packageInfo from '../../package.json';
 export const environment = {
   appVersion: packageInfo.version,
   production: false,
-  apiUrl: 'http://localhost:5008'
+  // Use empty string so requests go to same origin and proxy.conf.json forwards /api to the backend (avoids CORS in dev)
+  apiUrl: ''
 };
 
 /*

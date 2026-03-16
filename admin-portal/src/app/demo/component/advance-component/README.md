@@ -1,3 +1,3 @@
 # Advance components
 
-Demo advance components for Survey Admin Portal.
+Demo advance components for SurveyMind.

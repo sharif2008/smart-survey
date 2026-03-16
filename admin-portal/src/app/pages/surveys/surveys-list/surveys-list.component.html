@@ -17,20 +17,22 @@
               <tr>
                 <th>Title</th>
                 <th>Description</th>
+                <th>Created by</th>
                 <th>Created</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              @for (s of surveys; track s.id) {
+              @for (s of surveys; track s.id ?? $index) {
                 <tr>
                   <td>
                     <a [routerLink]="['/surveys', s.id]">{{ s.title }}</a>
                   </td>
                   <td class="text-muted">{{ s.description || '—' }}</td>
+                  <td>{{ getCreatedByLabel(s) }}</td>
                   <td>{{ formatDate(s.createdAt) }}</td>
                   <td>
-                    <a [routerLink]="['/surveys', s.id]" class="btn btn-sm btn-light me-1">View</a>
+                    <a [routerLink]="['/surveys', s.id]" class="btn btn-sm btn-outline-secondary me-1">View</a>
                     <button type="button" class="btn btn-sm btn-outline-primary me-1" (click)="openEdit(s)">Edit</button>
                     @if (deleteId === s.id) {
                       <span class="text-danger me-1">Delete?</span>
@@ -54,8 +56,8 @@
 </div>
 
 @if (createModal) {
-  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
-    <div class="modal-dialog">
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)" (click)="closeCreate()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">New Survey</h5>

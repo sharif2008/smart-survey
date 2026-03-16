@@ -26,11 +26,12 @@ public class ResponsesController : ControllerBase
         return (userId, isAdmin);
     }
 
-    /// <summary>POST /api/responses — Submit a survey response (no auth required for participants). Validates against question validation rules.</summary>
+    /// <summary>POST /api/responses — Submit a survey response (no auth required for participants). Rate limited per client IP. Validates against question validation rules.</summary>
     [HttpPost("responses")]
     [ProducesResponseType(typeof(SurveySubmissionResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> Submit([FromBody] SubmitSurveyResponseDto dto)
     {
         var submitResult = await _responseService.SubmitAsync(dto).ConfigureAwait(false);
@@ -51,6 +52,21 @@ public class ResponsesController : ControllerBase
     {
         var (userId, isAdmin) = GetCurrentUser();
         var list = await _responseService.GetBySurveyIdAsync(surveyId, userId, isAdmin).ConfigureAwait(false);
+        if (list == null)
+            return NotFound();
+        return Ok(list);
+    }
+
+    /// <summary>GET /api/surveys/{surveyId}/responses/details — Detailed responses with all answers (Admin: any; Researcher: own surveys).</summary>
+    [HttpGet("surveys/{surveyId:int}/responses/details")]
+    [Authorize(Roles = "Admin,Researcher")]
+    [ProducesResponseType(typeof(IEnumerable<SurveyResponseDetailDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetDetailedBySurveyId(int surveyId)
+    {
+        var (userId, isAdmin) = GetCurrentUser();
+        var list = await _responseService.GetDetailedBySurveyIdAsync(surveyId, userId, isAdmin).ConfigureAwait(false);
         if (list == null)
             return NotFound();
         return Ok(list);

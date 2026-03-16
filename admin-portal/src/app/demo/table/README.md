@@ -1,3 +1,3 @@
 # Tables
 
-Demo table components for Survey Admin Portal.
+Demo table components for SurveyMind.

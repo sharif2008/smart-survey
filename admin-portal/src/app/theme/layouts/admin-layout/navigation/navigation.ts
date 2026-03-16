@@ -75,6 +75,7 @@ export const NavigationItems: NavigationItem[] = [
     title: 'UI Components',
     type: 'group',
     icon: 'icon-navigation',
+    hidden: true,
     children: [
       {
         id: 'typography',
@@ -104,12 +105,12 @@ export const NavigationItems: NavigationItem[] = [
       }
     ]
   },
-
   {
     id: 'other',
     title: 'Other',
     type: 'group',
     icon: 'icon-navigation',
+    hidden: true,
     children: [
       {
         id: 'sample-page',

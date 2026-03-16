@@ -1,3 +1,3 @@
 # Widgets
 
-Demo widgets for Survey Admin Portal.
+Demo widgets for SurveyMind.

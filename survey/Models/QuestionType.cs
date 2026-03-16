@@ -12,5 +12,8 @@ public enum QuestionType
     SingleChoice = 4,
     MultipleChoice = 5,
     Rating = 6,
-    Date = 7
+    Date = 7,
+    Like = 8,
+    Ranking = 9,
+    NetPromoterScore = 10
 }

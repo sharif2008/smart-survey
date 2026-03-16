@@ -9,4 +9,7 @@ public class UpdateSurveyDto
 
     [MaxLength(2000)]
     public string? Description { get; set; }
+
+    public DateTime? EndsAt { get; set; }
+    public bool? IsClosed { get; set; }
 }

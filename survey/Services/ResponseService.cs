@@ -111,6 +111,46 @@ public class ResponseService : IResponseService
             .ConfigureAwait(false);
     }
 
+    public async Task<IEnumerable<SurveyResponseDetailDto>?> GetDetailedBySurveyIdAsync(int surveyId, int? researcherId, bool isAdmin)
+    {
+        var survey = await _db.Surveys.AsNoTracking().FirstOrDefaultAsync(s => s.Id == surveyId).ConfigureAwait(false);
+        if (survey == null)
+            return null;
+        if (!isAdmin && (!researcherId.HasValue || survey.ResearcherId != researcherId.Value))
+            return null;
+
+        var responses = await _db.SurveyResponses
+            .AsNoTracking()
+            .Where(r => r.SurveyId == surveyId)
+            .Include(r => r.Answers)
+            .ThenInclude(a => a.Question)
+            .OrderByDescending(r => r.SubmittedAt)
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        var surveyCreatedAt = survey.CreatedAt;
+
+        return responses.Select(r => new SurveyResponseDetailDto
+        {
+            Id = r.Id,
+            SurveyId = r.SurveyId,
+            ParticipantName = r.ParticipantName,
+            SubmittedAt = r.SubmittedAt,
+            TotalTimeSeconds = (r.SubmittedAt - surveyCreatedAt).TotalSeconds,
+            Answers = r.Answers
+                .OrderBy(a => a.Question.Page != null ? a.Question.Page.Order : 0)
+                .ThenBy(a => a.Question.Order)
+                .Select(a => new SurveyResponseAnswerDto
+                {
+                    QuestionId = a.QuestionId,
+                    QuestionText = a.Question.Text,
+                    QuestionType = a.Question.Type,
+                    ResponseText = a.ResponseText
+                })
+                .ToList()
+        }).ToList();
+    }
+
     /// <inheritdoc />
     public async Task<SurveySummaryDto?> GetSurveySummaryAsync(int surveyId, int currentUserId, string currentUserRole)
     {
@@ -130,11 +170,13 @@ public class ResponseService : IResponseService
             throw new UnauthorizedAccessException("Access denied to this survey.");
 
         // Load all answers for this survey's responses (with question for type)
-        var responseIds = await _db.SurveyResponses
+        var responsesForSurvey = await _db.SurveyResponses
             .Where(r => r.SurveyId == surveyId)
-            .Select(r => r.Id)
+            .Select(r => new { r.Id, r.SubmittedAt })
             .ToListAsync()
             .ConfigureAwait(false);
+
+        var responseIds = responsesForSurvey.Select(r => r.Id).ToList();
 
         var answers = await _db.Answers
             .Where(a => responseIds.Contains(a.SurveyResponseId))
@@ -142,7 +184,7 @@ public class ResponseService : IResponseService
             .ToListAsync()
             .ConfigureAwait(false);
 
-        var totalResponses = responseIds.Count;
+        var totalResponses = responsesForSurvey.Count;
         var answersByQuestion = answers
             .GroupBy(a => a.QuestionId)
             .ToDictionary(g => g.Key, g => g.ToList());
@@ -162,11 +204,32 @@ public class ResponseService : IResponseService
             });
         }
 
+        // Aggregate high-level timing metrics for the overview.
+        var activeResponses = totalResponses;
+        double averageCompletionSeconds = 0;
+        var durationDays = 0;
+
+        if (responsesForSurvey.Count > 0)
+        {
+            var createdAt = survey.CreatedAt;
+            averageCompletionSeconds = responsesForSurvey
+                .Select(r => (r.SubmittedAt - createdAt).TotalSeconds)
+                .DefaultIfEmpty(0)
+                .Average();
+
+            var first = responsesForSurvey.Min(r => r.SubmittedAt);
+            var latest = responsesForSurvey.Max(r => r.SubmittedAt);
+            durationDays = (int)Math.Round((latest - first).TotalDays);
+        }
+
         return new SurveySummaryDto
         {
             SurveyId = survey.Id,
             SurveyTitle = survey.Title,
             TotalResponses = totalResponses,
+            ActiveResponses = activeResponses,
+            AverageCompletionSeconds = averageCompletionSeconds,
+            DurationDays = durationDays,
             GeneratedAt = DateTime.UtcNow,
             Questions = questionSummaries
         };
@@ -193,6 +256,9 @@ public class ResponseService : IResponseService
             QuestionType.Rating => BuildRatingSummary(texts),
             QuestionType.Number => BuildNumberSummary(texts),
             QuestionType.Date => BuildDateSummary(texts),
+            QuestionType.Like => BuildLikeSummary(texts),
+            QuestionType.Ranking => BuildRankingSummary(texts, question),
+            QuestionType.NetPromoterScore => BuildNPSSummary(texts),
             _ => new { message = "Unknown question type" }
         };
     }
@@ -400,5 +466,69 @@ public class ResponseService : IResponseService
                 values.Add(n);
         }
         return values;
+    }
+
+    /// <summary>Like: stores "Like" or "Dislike". Summary similar to Yes/No.</summary>
+    private static object BuildLikeSummary(List<string> texts)
+    {
+        var responseCount = texts.Count;
+        var likeCount = texts.Count(t => string.Equals(t, "Like", StringComparison.OrdinalIgnoreCase));
+        var dislikeCount = texts.Count(t => string.Equals(t, "Dislike", StringComparison.OrdinalIgnoreCase));
+        var likePct = responseCount > 0 ? Math.Round(100.0 * likeCount / responseCount, 1) : 0;
+        var dislikePct = responseCount > 0 ? Math.Round(100.0 * dislikeCount / responseCount, 1) : 0;
+        return new { responseCount, likeCount, dislikeCount, likePercentage = likePct, dislikePercentage = dislikePct };
+    }
+
+    /// <summary>Ranking: each answer is comma-separated ordered list of options (e.g. "A,B,C"). Summary: average rank per option.</summary>
+    private static object BuildRankingSummary(List<string> texts, Question question)
+    {
+        var responseCount = texts.Count;
+        var optionRanks = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var line in texts)
+        {
+            var parts = line?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+            for (var i = 0; i < parts.Length; i++)
+            {
+                var opt = parts[i];
+                if (string.IsNullOrEmpty(opt)) continue;
+                if (!optionRanks.ContainsKey(opt))
+                    optionRanks[opt] = new List<int>();
+                optionRanks[opt].Add(i + 1); // 1-based rank
+            }
+        }
+        var averageRankByOption = optionRanks
+            .Select(p => new { option = p.Key, averageRank = p.Value.Count > 0 ? Math.Round(p.Value.Average(), 2) : 0.0, responseCount = p.Value.Count })
+            .OrderBy(x => x.averageRank)
+            .ToList();
+        return new { responseCount, averageRankByOption };
+    }
+
+    /// <summary>Net Promoter Score: 0-10 scale. Detractors 0-6, Passives 7-8, Promoters 9-10. NPS = % Promoters - % Detractors.</summary>
+    private static object BuildNPSSummary(List<string> texts)
+    {
+        var values = ParseDecimals(texts).Select(v => (int)Math.Clamp(v, 0, 10)).ToList();
+        if (values.Count == 0)
+            return new { responseCount = 0, npsScore = 0, detractors = 0, passives = 0, promoters = 0, distribution = new List<RatingDistributionDto>() };
+        var detractors = values.Count(x => x >= 0 && x <= 6);
+        var passives = values.Count(x => x == 7 || x == 8);
+        var promoters = values.Count(x => x == 9 || x == 10);
+        var npsScore = values.Count > 0 ? Math.Round(100.0 * (promoters - detractors) / values.Count, 1) : 0.0;
+        var distribution = values
+            .GroupBy(v => v)
+            .OrderBy(g => g.Key)
+            .Select(g => new RatingDistributionDto { Label = g.Key.ToString(), Count = g.Count() })
+            .ToList();
+        return new
+        {
+            responseCount = values.Count,
+            npsScore,
+            detractors,
+            passives,
+            promoters,
+            detractorsPct = values.Count > 0 ? Math.Round(100.0 * detractors / values.Count, 1) : 0,
+            passivesPct = values.Count > 0 ? Math.Round(100.0 * passives / values.Count, 1) : 0,
+            promotersPct = values.Count > 0 ? Math.Round(100.0 * promoters / values.Count, 1) : 0,
+            distribution
+        };
     }
 }

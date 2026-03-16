@@ -9,4 +9,7 @@ public class CreateSurveyDto
 
     [MaxLength(2000)]
     public string? Description { get; set; }
+
+    /// <summary>Optional end date/time for the survey.</summary>
+    public DateTime? EndsAt { get; set; }
 }

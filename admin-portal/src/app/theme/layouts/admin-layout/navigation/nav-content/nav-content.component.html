@@ -3,20 +3,11 @@
   <div class="navbar-content">
     <ul class="nav coded-inner-navbar" (click)="fireOutClick()" (mouseleave)="navMob()">
       @for (item of navigations; track item) {
-        @if (item.type === 'group') {
+        @if (item.type === 'group' && !item.hidden) {
           <app-nav-group [item]="item"></app-nav-group>
         }
       }
     </ul>
-    <div class="m-4 mb-0">
-      <div class="card nav-card">
-        <div class="card-body">
-          <div class="d-flex flex-column align-items-center text-center">
-            <h6 class="mb-0">Survey Admin Portal</h6>
-            <span class="text-muted small">Backed by Survey API</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    
   </div>
 </ng-scrollbar>

@@ -1,118 +1,113 @@
 <div class="row">
-  @for (analytic of AnalyticEcommerce; track analytic) {
-    <div class="col-md-6 col-xl-3">
-      <app-card [showHeader]="false" blockClass="dashboard-card">
-        <h6 class="mb-2 f-w-400 text-muted">{{ analytic.title }}</h6>
-        <h4 class="mb-3">
-          {{ analytic.amount }}
-          <span class="badge {{ analytic.background }} border {{ analytic.border }} ">
-            <i antIcon type="{{ analytic.icon }}" theme="outline"></i>
-            {{ analytic.percentage }}
-          </span>
-        </h4>
-        <p class="mb-0 text-muted text-sm">
-          You made an extra
-          <span class="{{ analytic.color }}">{{ analytic.number }}</span>
-          this year
-        </p>
-      </app-card>
+  <div class="col-12">
+    <app-card [showHeader]="false" blockClass="dashboard-card">
+      <h5 class="mb-2">SurveyMind</h5>
+      <p class="mb-0 text-muted">Use the Surveys menu to create and manage surveys, or go to Users to manage accounts.</p>
+    </app-card>
+  </div>
+</div>
+
+@if (loading) {
+  <div class="row mt-3">
+    <div class="col-12">
+      <p class="text-muted mb-0">Loading dashboard…</p>
+    </div>
+  </div>
+} @else if (error) {
+  <div class="row mt-3">
+    <div class="col-12">
+      <p class="text-danger mb-0">{{ error }}</p>
+    </div>
+  </div>
+} @else if (stats) {
+  <!-- Stat cards -->
+  <div class="row g-3 mt-2">
+    @if (isAdmin) {
+      <div class="col-sm-6 col-xl-4">
+        <app-card [showHeader]="false" blockClass="dashboard-card h-100">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3 rounded-3 bg-primary bg-opacity-10 p-3">
+              <i class="ti ti-clipboard-list text-primary fs-4"></i>
+            </div>
+            <div>
+              <h4 class="mb-0">{{ stats.totalSurveys }}</h4>
+              <span class="text-muted small">Total Surveys</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <a routerLink="/surveys" class="small">View all surveys</a>
+          </div>
+        </app-card>
+      </div>
+      <div class="col-sm-6 col-xl-4">
+        <app-card [showHeader]="false" blockClass="dashboard-card h-100">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3 rounded-3 bg-info bg-opacity-10 p-3">
+              <i class="ti ti-users text-info fs-4"></i>
+            </div>
+            <div>
+              <h4 class="mb-0">{{ stats.researcherCount }}</h4>
+              <span class="text-muted small">Researchers</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <a routerLink="/users" class="small">View users</a>
+          </div>
+        </app-card>
+      </div>
+    } @else {
+      <div class="col-sm-6 col-xl-4">
+        <app-card [showHeader]="false" blockClass="dashboard-card h-100">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3 rounded-3 bg-primary bg-opacity-10 p-3">
+              <i class="ti ti-clipboard-list text-primary fs-4"></i>
+            </div>
+            <div>
+              <h4 class="mb-0">{{ stats.totalSurveys }}</h4>
+              <span class="text-muted small">My Surveys</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <a routerLink="/surveys" class="small">View my surveys</a>
+          </div>
+        </app-card>
+      </div>
+    }
+  </div>
+
+  @if (hourlyChart) {
+    <div class="row mt-3">
+      <div class="col-12">
+        <app-card cardTitle="Responses (last 24 hours)" blockClass="dashboard-card">
+          <apx-chart
+            [series]="hourlyChart.series"
+            [chart]="hourlyChart.chart"
+            [xaxis]="hourlyChart.xaxis"
+            [dataLabels]="hourlyChart.dataLabels"
+            [stroke]="hourlyChart.stroke"
+            [fill]="hourlyChart.fill"
+          ></apx-chart>
+        </app-card>
+      </div>
     </div>
   }
-  <div class="col-md-12 col-xl-8">
-    <app-monthly-bar-chart />
-  </div>
-  <div class="col-md-12 col-xl-4">
-    <app-income-overview-chart />
-  </div>
 
-  <div class="col-md-12 col-xl-8">
-    <h5 class="mb-3">Recent Orders</h5>
-    <div class="card tbl-card">
-      <div class="table-responsive">
-        <table class="table table-hover mb-0">
-          <thead>
-            <tr>
-              <th>TRACKING NO.</th>
-              <th>PRODUCT NAME</th>
-              <th>STATUS</th>
-              <th class="text-end">TOTAL ORDER</th>
-              <th class="text-end">TOTAL AMOUNT</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (order of recentOrder; track order) {
-              <tr>
-                <td>
-                  <a href="javascript:" class="text-muted">{{ order.id }}</a>
-                </td>
-                <td>{{ order.name }}</td>
-                <td>
-                  <span class="d-block">
-                    <i class="badge-circle {{ order.status_type }} f-10 m-r-5"></i>
-                    {{ order.status }}
-                  </span>
-                </td>
-                <td class="text-end">{{ order.quantity }}</td>
-                <td class="text-end">{{ order.amount }}</td>
-              </tr>
+  <!-- Researcher: summary of surveys created by me -->
+  @if (!isAdmin && stats.surveySummaries?.length) {
+    <div class="row mt-3">
+      <div class="col-12">
+        <app-card cardTitle="Your surveys" blockClass="dashboard-card">
+          <p class="text-muted small mb-3">Summary of surveys you created and their response counts.</p>
+          <ul class="list-group list-group-flush">
+            @for (s of stats.surveySummaries; track s.surveyId) {
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <a [routerLink]="['/surveys', s.surveyId]">{{ s.title || 'Untitled survey' }}</a>
+                <span class="badge bg-secondary rounded-pill">{{ s.responseCount }} response(s)</span>
+              </li>
             }
-          </tbody>
-        </table>
+          </ul>
+        </app-card>
       </div>
     </div>
-  </div>
-  <div class="col-md-12 col-xl-4">
-    <app-analytics-chart />
-  </div>
-
-  <div class="col-md-12 col-xl-8">
-    <app-sales-report-chart />
-  </div>
-  <div class="col-md-12 col-xl-4">
-    <h5 class="mb-3">Transaction History</h5>
-    <div class="card">
-      <div class="list-group list-group-flush">
-        @for (history of transaction; track history) {
-          <a href="javascript:" class="list-group-item list-group-item-action px-3">
-            <div class="d-flex">
-              <div class="flex-shrink-0">
-                <div class="avatar avatar-s rounded-circle {{ history.background }}">
-                  <i class="f-16" antIcon type="{{ history.icon }}" theme="outline"></i>
-                </div>
-              </div>
-              <div class="flex-grow-1 ms-3">
-                <h6 class="mb-1">{{ history.title }}</h6>
-                <p class="mb-0 text-muted">{{ history.time }}</p>
-              </div>
-              <div class="flex-shrink-0 text-end">
-                <h6 class="mb-1">{{ history.amount }}</h6>
-                <p class="mb-0 text-muted">{{ history.percentage }}</p>
-              </div>
-            </div>
-          </a>
-        }
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-body">
-        <div class="row justify-content-between">
-          <div class="col-auto">
-            <h5>Help & Support Chat</h5>
-            <p class="mb-3">Typical replay within 5 min</p>
-          </div>
-          <div class="col-auto">
-            <div class="user-group mb-3">
-              <img src="assets/images/user/avatar-1.jpg" alt="image" />
-              <img src="assets/images/user/avatar-2.jpg" alt="image" />
-              <img src="assets/images/user/avatar-3.jpg" alt="image" />
-            </div>
-          </div>
-        </div>
-        <div class="d-grid">
-          <div class="btn btn-primary">Need Help?</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- [ sample-page ] end -->
-</div>
+  }
+}

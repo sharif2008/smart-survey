@@ -2,6 +2,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SurveyApi.DTOs.Survey;
+using SurveyApi.DTOs.Response;
+using SurveyApi.Services;
 using SurveyApi.Services.Interfaces;
 
 namespace SurveyApi.Controllers;
@@ -11,10 +13,12 @@ namespace SurveyApi.Controllers;
 public class SurveysController : ControllerBase
 {
     private readonly ISurveyService _surveyService;
+    private readonly IResponseService _responseService;
 
-    public SurveysController(ISurveyService surveyService)
+    public SurveysController(ISurveyService surveyService, IResponseService responseService)
     {
         _surveyService = surveyService;
+        _responseService = responseService;
     }
 
     private (int? userId, bool isAdmin) GetCurrentUser()
@@ -34,6 +38,21 @@ public class SurveysController : ControllerBase
     {
         var (userId, isAdmin) = GetCurrentUser();
         var list = await _surveyService.GetAllAsync(userId, isAdmin).ConfigureAwait(false);
+        return Ok(list);
+    }
+
+    /// <summary>GET /api/surveys/{surveyId}/responses/details — Full response details with answers (Admin/Researcher, own surveys for Researcher).</summary>
+    [HttpGet("{surveyId:int}/responses/details")]
+    [Authorize(Roles = "Admin,Researcher")]
+    [ProducesResponseType(typeof(IEnumerable<SurveyResponseDetailDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetResponseDetails(int surveyId)
+    {
+        var (userId, isAdmin) = GetCurrentUser();
+        var list = await _responseService.GetDetailedBySurveyIdAsync(surveyId, userId, isAdmin).ConfigureAwait(false);
+        if (list == null)
+            return NotFound();
         return Ok(list);
     }
 

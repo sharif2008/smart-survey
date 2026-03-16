@@ -87,6 +87,15 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
+  /**
+   * Call when API returns 401/403: show reason to user and redirect to login.
+   */
+  handleAuthError(reason: string): void {
+    sessionStorage.removeItem(STORAGE_KEY);
+    alert(reason + '\n\nYou will be redirected to the login page.');
+    this.router.navigate(['/login']);
+  }
+
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
@@ -111,5 +120,54 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Update current user's profile on the server and refresh local session copy.
+   * Currently supports changing the user's display name (FullName).
+   */
+  updateProfile(fullName: string): Observable<{ success: true } | { success: false; error: string }> {
+    const trimmed = (fullName || '').trim();
+    if (!trimmed) {
+      return of({ success: false as const, error: 'Name is required.' });
+    }
+
+    return this.http
+      .put<unknown>(`${this.apiUrl}/api/profile`, { fullName: trimmed })
+      .pipe(
+        tap((res) => {
+          // Normalize UserResponse from API into AuthUser
+          const raw = res as Record<string, unknown>;
+          const user: AuthUser = {
+            email: String(raw['email'] ?? raw['Email'] ?? ''),
+            name: String(raw['fullName'] ?? raw['FullName'] ?? raw['email'] ?? raw['Email'] ?? ''),
+            role: (raw['role'] ?? raw['Role']) as string | undefined
+          };
+
+          const storedRaw = sessionStorage.getItem(STORAGE_KEY);
+          let token = '';
+          if (storedRaw) {
+            try {
+              const stored = JSON.parse(storedRaw) as StoredAuth;
+              token = stored.token;
+            } catch {
+              token = this.getToken() ?? '';
+            }
+          } else {
+            token = this.getToken() ?? '';
+          }
+
+          const updated: StoredAuth = { token, user };
+          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        }),
+        map(() => ({ success: true as const })),
+        catchError((err) => {
+          const message =
+            err?.error?.message ??
+            (typeof err?.error === 'string' ? err.error : null) ??
+            'Failed to save profile. Please try again.';
+          return of({ success: false as const, error: message });
+        })
+      );
   }
 }

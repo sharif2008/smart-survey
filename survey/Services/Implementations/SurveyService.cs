@@ -29,7 +29,9 @@ public class SurveyService : ISurveyService
                 Title = s.Title,
                 Description = s.Description,
                 ResearcherId = s.ResearcherId,
-                CreatedAt = s.CreatedAt
+                CreatedAt = s.CreatedAt,
+                EndsAt = s.EndsAt,
+                IsClosed = s.IsClosed
             })
             .ToListAsync()
             .ConfigureAwait(false);
@@ -48,7 +50,9 @@ public class SurveyService : ISurveyService
             Title = survey.Title,
             Description = survey.Description,
             ResearcherId = survey.ResearcherId,
-            CreatedAt = survey.CreatedAt
+            CreatedAt = survey.CreatedAt,
+            EndsAt = survey.EndsAt,
+            IsClosed = survey.IsClosed
         };
     }
 
@@ -58,7 +62,8 @@ public class SurveyService : ISurveyService
         {
             Title = dto.Title,
             Description = dto.Description,
-            ResearcherId = researcherId
+            ResearcherId = researcherId,
+            EndsAt = dto.EndsAt
         };
         _db.Surveys.Add(survey);
         await _db.SaveChangesAsync().ConfigureAwait(false);
@@ -75,6 +80,10 @@ public class SurveyService : ISurveyService
 
         survey.Title = dto.Title;
         survey.Description = dto.Description;
+        if (dto.EndsAt.HasValue)
+            survey.EndsAt = dto.EndsAt;
+        if (dto.IsClosed.HasValue)
+            survey.IsClosed = dto.IsClosed.Value;
         await _db.SaveChangesAsync().ConfigureAwait(false);
         return await GetByIdAsync(id, researcherId, isAdmin).ConfigureAwait(false);
     }

@@ -1,3 +1,3 @@
 # Directives
 
-Shared directives for the Survey Admin Portal.
+Shared directives for the SurveyMind.

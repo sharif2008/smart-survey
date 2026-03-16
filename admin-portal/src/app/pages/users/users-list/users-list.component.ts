@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardComponent } from '../../../theme/shared/components/card/card.component';
@@ -23,6 +23,7 @@ export class UsersListComponent implements OnInit {
   fullName = '';
   email = '';
   password = '';
+  confirmPassword = '';
   role: 'Admin' | 'Researcher' = 'Researcher';
   createSaving = false;
   editSaving = false;
@@ -34,7 +35,8 @@ export class UsersListComponent implements OnInit {
 
   constructor(
     private api: UsersApiService,
-    private auth: AuthService
+    private auth: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -43,6 +45,7 @@ export class UsersListComponent implements OnInit {
     if (!this.isAdmin) {
       this.error = 'Only Admins can view the users list.';
       this.loading = false;
+      this.cdr.detectChanges();
       return;
     }
     this.loadUsers();
@@ -53,12 +56,15 @@ export class UsersListComponent implements OnInit {
     this.error = '';
     this.api.getUsers().subscribe({
       next: (list) => {
-        this.users = list;
+        this.users = list ?? [];
         this.loading = false;
+        this.cdr.detectChanges();
       },
-      error: () => {
-        this.error = 'Failed to load users.';
+      error: (err) => {
         this.loading = false;
+        const status = err?.status ?? err?.statusCode;
+        this.error = status === 401 ? 'Please log in as Admin to view users.' : 'Failed to load users. Check that the API is running and you are logged in as Admin.';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -67,6 +73,7 @@ export class UsersListComponent implements OnInit {
     this.fullName = '';
     this.email = '';
     this.password = '';
+    this.confirmPassword = '';
     this.role = 'Researcher';
     this.createModal = true;
   }
@@ -79,7 +86,8 @@ export class UsersListComponent implements OnInit {
     const fullName = this.fullName?.trim();
     const email = this.email?.trim();
     const password = this.password;
-    if (!fullName || !email || !password || password.length < 6) return;
+    const confirmPassword = this.confirmPassword;
+    if (!fullName || !email || !password || password.length < 6 || password !== confirmPassword) return;
     this.createSaving = true;
     const dto: RegisterRequest = { fullName, email, password, role: this.role };
     this.api.createUser(dto).subscribe({
@@ -99,6 +107,7 @@ export class UsersListComponent implements OnInit {
     this.fullName = u.fullName;
     this.email = u.email;
     this.password = '';
+    this.confirmPassword = '';
     this.role = (u.role === 'Admin' ? 'Admin' : 'Researcher') as 'Admin' | 'Researcher';
   }
 
@@ -111,7 +120,8 @@ export class UsersListComponent implements OnInit {
     const fullName = this.fullName?.trim();
     const email = this.email?.trim();
     const password = this.password;
-    if (!fullName || !email || !password || password.length < 6) return;
+    const confirmPassword = this.confirmPassword;
+    if (!fullName || !email || !password || password.length < 6 || password !== confirmPassword) return;
     this.editSaving = true;
     const dto: RegisterRequest = { fullName, email, password, role: this.role };
     this.api.updateUser(this.editUser.id, dto).subscribe({

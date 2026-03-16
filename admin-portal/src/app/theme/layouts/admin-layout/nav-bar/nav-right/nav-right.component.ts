@@ -6,29 +6,9 @@ import { RouterModule } from '@angular/router';
 import { SharedModule } from 'src/app/theme/shared/shared.module';
 import { AuthService } from 'src/app/core/auth.service';
 
-// third party
-
 // icon
 import { IconService } from '@ant-design/icons-angular';
-import {
-  BellOutline,
-  SettingOutline,
-  GiftOutline,
-  MessageOutline,
-  PhoneOutline,
-  CheckCircleOutline,
-  LogoutOutline,
-  EditOutline,
-  UserOutline,
-  ProfileOutline,
-  WalletOutline,
-  QuestionCircleOutline,
-  LockOutline,
-  CommentOutline,
-  UnorderedListOutline,
-  ArrowRightOutline,
-  GithubOutline
-} from '@ant-design/icons-angular/icons';
+import { LogoutOutline, EditOutline } from '@ant-design/icons-angular/icons';
 
 @Component({
   selector: 'app-nav-right',
@@ -48,77 +28,14 @@ export class NavRightComponent {
   screenFull: boolean = true;
   direction: string = 'ltr';
 
-  // constructor
   constructor() {
     this.windowWidth = window.innerWidth;
-    this.iconService.addIcon(
-      ...[
-        CheckCircleOutline,
-        GiftOutline,
-        MessageOutline,
-        SettingOutline,
-        PhoneOutline,
-        LogoutOutline,
-        EditOutline,
-        UserOutline,
-        EditOutline,
-        ProfileOutline,
-        QuestionCircleOutline,
-        LockOutline,
-        CommentOutline,
-        UnorderedListOutline,
-        ArrowRightOutline,
-        BellOutline,
-        GithubOutline,
-        WalletOutline
-      ]
-    );
+    this.iconService.addIcon(LogoutOutline, EditOutline);
   }
 
   profile = [
-    {
-      icon: 'edit',
-      title: 'Edit Profile'
-    },
-    {
-      icon: 'user',
-      title: 'View Profile'
-    },
-    {
-      icon: 'profile',
-      title: 'Social Profile'
-    },
-    {
-      icon: 'wallet',
-      title: 'Billing'
-    },
-    {
-      icon: 'logout',
-      title: 'Logout'
-    }
-  ];
-
-  setting = [
-    {
-      icon: 'question-circle',
-      title: 'Support'
-    },
-    {
-      icon: 'user',
-      title: 'Account Settings'
-    },
-    {
-      icon: 'lock',
-      title: 'Privacy Center'
-    },
-    {
-      icon: 'comment',
-      title: 'Feedback'
-    },
-    {
-      icon: 'unordered-list',
-      title: 'History'
-    }
+    { icon: 'edit', title: 'Edit Profile' },
+    { icon: 'logout', title: 'Logout' }
   ];
 
   logout(): void {

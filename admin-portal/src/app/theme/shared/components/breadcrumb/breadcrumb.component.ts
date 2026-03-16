@@ -5,6 +5,7 @@ import { NavigationEnd, Router, RouterModule, Event } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 
 // project import
+import { APP_BRAND } from 'src/app/app-config';
 import { NavigationItem, NavigationItems } from 'src/app/theme/layouts/admin-layout/navigation/navigation';
 
 // icons
@@ -60,7 +61,7 @@ export class BreadcrumbComponent {
         const breadcrumbList = this.filterNavigation(this.navigations, activeLink);
         this.navigationList = breadcrumbList;
         const title = breadcrumbList[breadcrumbList.length - 1]?.title || 'Welcome';
-        this.titleService.setTitle(title + ' | Survey Admin Portal');
+        this.titleService.setTitle(title + ' | ' + APP_BRAND);
       }
     });
   }

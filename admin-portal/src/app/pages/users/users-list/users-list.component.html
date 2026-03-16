@@ -65,13 +65,26 @@
           <div class="mb-3"><label class="form-label">Full name *</label><input type="text" class="form-control" [(ngModel)]="fullName" placeholder="Full name" /></div>
           <div class="mb-3"><label class="form-label">Email *</label><input type="email" class="form-control" [(ngModel)]="email" placeholder="Email" /></div>
           <div class="mb-3"><label class="form-label">Password * (min 6)</label><input type="password" class="form-control" [(ngModel)]="password" placeholder="Password" /></div>
+          <div class="mb-3"><label class="form-label">Confirm password *</label><input type="password" class="form-control" [(ngModel)]="confirmPassword" placeholder="Re-enter password" /></div>
           <div class="mb-3"><label class="form-label">Role</label><select class="form-select" [(ngModel)]="role">
             @for (r of roles; track r.value) { <option [value]="r.value">{{ r.label }}</option> }
           </select></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" (click)="closeCreate()">Cancel</button>
-          <button type="button" class="btn btn-primary" [disabled]="!fullName?.trim() || !email?.trim() || !password || password.length < 6 || createSaving" (click)="createUser()">
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="
+              !fullName?.trim() ||
+              !email?.trim() ||
+              !password ||
+              password.length < 6 ||
+              password !== confirmPassword ||
+              createSaving
+            "
+            (click)="createUser()"
+          >
             {{ createSaving ? 'Creating…' : 'Create' }}
           </button>
         </div>
@@ -92,13 +105,26 @@
           <div class="mb-3"><label class="form-label">Full name *</label><input type="text" class="form-control" [(ngModel)]="fullName" /></div>
           <div class="mb-3"><label class="form-label">Email *</label><input type="email" class="form-control" [(ngModel)]="email" /></div>
           <div class="mb-3"><label class="form-label">New password * (min 6)</label><input type="password" class="form-control" [(ngModel)]="password" placeholder="Enter new password" /></div>
+          <div class="mb-3"><label class="form-label">Confirm new password *</label><input type="password" class="form-control" [(ngModel)]="confirmPassword" placeholder="Re-enter new password" /></div>
           <div class="mb-3"><label class="form-label">Role</label><select class="form-select" [(ngModel)]="role">
             @for (r of roles; track r.value) { <option [value]="r.value">{{ r.label }}</option> }
           </select></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" (click)="closeEdit()">Cancel</button>
-          <button type="button" class="btn btn-primary" [disabled]="!fullName?.trim() || !email?.trim() || !password || password.length < 6 || editSaving" (click)="saveEdit()">
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="
+              !fullName?.trim() ||
+              !email?.trim() ||
+              !password ||
+              password.length < 6 ||
+              password !== confirmPassword ||
+              editSaving
+            "
+            (click)="saveEdit()"
+          >
             {{ editSaving ? 'Saving…' : 'Save' }}
           </button>
         </div>

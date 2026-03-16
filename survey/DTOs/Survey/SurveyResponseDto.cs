@@ -7,4 +7,6 @@ public class SurveyResponseDto
     public string? Description { get; set; }
     public int ResearcherId { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? EndsAt { get; set; }
+    public bool IsClosed { get; set; }
 }

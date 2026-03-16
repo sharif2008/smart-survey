@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 // project import
+import { APP_BRAND } from './app-config';
 import { SpinnerComponent } from './theme/shared/components/spinner/spinner.component';
 
 @Component({
@@ -12,6 +13,5 @@ import { SpinnerComponent } from './theme/shared/components/spinner/spinner.comp
   imports: [RouterOutlet, SpinnerComponent]
 })
 export class AppComponent {
-  // public props
-  title = 'survey-admin-portal';
+  title = APP_BRAND;
 }

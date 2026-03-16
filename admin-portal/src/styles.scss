@@ -1,6 +1,6 @@
 /**======================================================================
 =========================================================================
-Survey Admin Portal – Angular admin UI for Survey API
+SurveyMind – Angular admin UI for Survey API
 =========================================================================
 =================================================================================== */
 
@@ -33,3 +33,31 @@ Survey Admin Portal – Angular admin UI for Survey API
 @import 'scss/themes/layouts/footer/footer.scss';
 
 @import 'scss/themes/preset-style.scss';
+
+/* Survey builder canvas: force question text always readable (global so it wins over theme) */
+.survey-builder .builder-center .card,
+.survey-builder .builder-center .card-body {
+  color: #212529 !important;
+  background-color: #ffffff !important;
+}
+.survey-builder .canvas-page {
+  color: #212529 !important;
+  background-color: #ffffff !important;
+}
+.survey-builder .canvas-question {
+  color: #212529 !important;
+  background-color: #f8f9fa !important;
+}
+.survey-builder .canvas-question .canvas-question-content,
+.survey-builder .canvas-question .canvas-question-text {
+  color: #212529 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.survey-builder .canvas-question .canvas-question-meta {
+  color: #6c757d !important;
+}
+.survey-builder .canvas-question.bg-primary.bg-opacity-10 .canvas-question-text,
+.survey-builder .canvas-question.bg-primary.bg-opacity-10 .canvas-question-content {
+  color: #212529 !important;
+}

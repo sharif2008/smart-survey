@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CardComponent } from '../../../theme/shared/components/card/card.component';
 import { SurveyApiService } from '../../../core/services/survey-api.service';
+import { UsersApiService } from '../../../core/services/users-api.service';
 import type { SurveyDto, CreateSurveyDto, UpdateSurveyDto } from '../../../core/api/survey-api.model';
 
 @Component({
@@ -15,6 +16,8 @@ import type { SurveyDto, CreateSurveyDto, UpdateSurveyDto } from '../../../core/
 })
 export class SurveysListComponent implements OnInit {
   surveys: SurveyDto[] = [];
+  /** Map of user id -> display name (fullName or email) for "Created by" column */
+  createdByNames: Map<number, string> = new Map();
   loading = true;
   error = '';
   createModal = false;
@@ -25,10 +28,20 @@ export class SurveysListComponent implements OnInit {
   editSaving = false;
   deleteId: number | null = null;
 
-  constructor(private api: SurveyApiService) {}
+  constructor(
+    private api: SurveyApiService,
+    private usersApi: UsersApiService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadSurveys();
+    this.usersApi.getUsers().subscribe((users) => {
+      const map = new Map<number, string>();
+      users.forEach((u) => map.set(u.id, u.fullName?.trim() || u.email || `User #${u.id}`));
+      this.createdByNames = map;
+      this.cdr.detectChanges();
+    });
   }
 
   loadSurveys(): void {
@@ -36,14 +49,22 @@ export class SurveysListComponent implements OnInit {
     this.error = '';
     this.api.getSurveys().subscribe({
       next: (list) => {
-        this.surveys = list;
+        this.surveys = list ?? [];
         this.loading = false;
+        this.cdr.detectChanges();
       },
-      error: () => {
-        this.error = 'Failed to load surveys.';
+      error: (err) => {
         this.loading = false;
+        const status = err?.status ?? err?.statusCode;
+        this.error = status === 401 ? 'Please log in to view surveys.' : 'Failed to load surveys. Check that the API is running and you are logged in.';
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  getCreatedByLabel(s: SurveyDto): string {
+    const id = s.researcherId;
+    return this.createdByNames.get(id) ?? `User #${id}`;
   }
 
   openCreate(): void {
@@ -97,6 +118,7 @@ export class SurveysListComponent implements OnInit {
       },
       error: () => {
         this.createSaving = false;
+        this.createModal = false;
       }
     });
   }

@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 // Project import
+import { APP_BRAND } from '../../../app-config';
 import { SharedModule } from '../../shared/shared.module';
 import { NavBarComponent } from './nav-bar/nav-bar.component';
 import { NavigationComponent } from './navigation/navigation.component';
@@ -19,7 +20,7 @@ import { LayoutStateService } from '../../shared/service/layout-state.service';
 export class AdminLayout {
   private layoutState = inject(LayoutStateService);
 
-  // public props
+  readonly brand = APP_BRAND;
   navCollapsed: boolean;
   windowWidth: number;
 

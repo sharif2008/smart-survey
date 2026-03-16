@@ -8,6 +8,7 @@ using Serilog;
 using SurveyApi.Data;
 using SurveyApi.Helpers;
 using SurveyApi.Models;
+using SurveyApi.Options;
 using SurveyApi.Services;
 using SurveyApi.Services.Implementations;
 using SurveyApi.Services.Interfaces;
@@ -39,13 +40,16 @@ builder.Services.AddCors(options =>
             {
                 if (string.IsNullOrEmpty(origin)) return false;
                 if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri) || !uri.IsAbsoluteUri) return false;
-                return (uri.Host is "localhost" or "127.0.0.1") && (uri.Port is 4200 or 4201 or 4202 or 8080 or 4203);
+                // Allow localhost / 127.0.0.1 on any port (Angular dev server, etc.)
+                if (uri.Scheme != "http" && uri.Scheme != "https") return false;
+                return uri.Host is "localhost" or "127.0.0.1";
             })
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
     });
 });
+builder.Services.AddMemoryCache();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -88,6 +92,8 @@ builder.Services.AddScoped<ISurveyService, SurveyService>();
 builder.Services.AddScoped<ISurveyPageService, SurveyPageService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IResponseService, ResponseService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IExportService, ExportService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "DefaultKeyAtLeast32CharactersLong!!";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "SurveyApi";
@@ -113,6 +119,7 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors();
+app.UseMiddleware<SubmissionRateLimitMiddleware>();
 app.UseSerilogRequestLogging(options =>
 {
     options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";

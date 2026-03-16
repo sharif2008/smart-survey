@@ -10,13 +10,18 @@ import { guestGuard } from './core/guards/guest.guard';
 
 const routes: Routes = [
   {
+    path: 's/:id',
+    loadComponent: () =>
+      import('./pages/public-survey/public-survey.component').then((c) => c.PublicSurveyComponent)
+  },
+  {
     path: '',
     component: AdminLayout,
     canActivate: [authGuard],
     children: [
       {
         path: '',
-        redirectTo: '/dashboard/default',
+        redirectTo: '/surveys',
         pathMatch: 'full'
       },
       {
@@ -46,6 +51,10 @@ const routes: Routes = [
       {
         path: 'users',
         loadComponent: () => import('./pages/users/users-list/users-list.component').then((c) => c.UsersListComponent)
+      },
+      {
+        path: 'profile',
+        loadComponent: () => import('./pages/profile/profile.component').then((c) => c.ProfileComponent)
       }
     ]
   },
