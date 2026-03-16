@@ -1,0 +1,12 @@
+# Logs
+Logs/
+*.log
+
+# Build outputs
+bin/
+obj/
+
+# App configuration that varies by environment
+appsettings.Development.json
+appsettings.Local.json
+
