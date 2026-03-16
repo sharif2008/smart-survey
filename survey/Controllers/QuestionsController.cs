@@ -11,10 +11,12 @@ namespace SurveyApi.Controllers;
 public class QuestionsController : ControllerBase
 {
     private readonly IQuestionService _questionService;
+    private readonly ISurveyService _surveyService;
 
-    public QuestionsController(IQuestionService questionService)
+    public QuestionsController(IQuestionService questionService, ISurveyService surveyService)
     {
         _questionService = questionService;
+        _surveyService = surveyService;
     }
 
     private (int? userId, bool isAdmin) GetCurrentUser()
@@ -26,12 +28,15 @@ public class QuestionsController : ControllerBase
         return (userId, isAdmin);
     }
 
-    /// <summary>GET /api/surveys/{surveyId}/questions</summary>
+    /// <summary>GET /api/surveys/{surveyId}/questions — Only active, non-expired surveys for public.</summary>
     [HttpGet("surveys/{surveyId:int}/questions")]
     [ProducesResponseType(typeof(IEnumerable<QuestionResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetBySurveyId(int surveyId)
     {
         var (userId, isAdmin) = GetCurrentUser();
+        if (!userId.HasValue && !await _surveyService.IsSurveyAvailableToPublicAsync(surveyId).ConfigureAwait(false))
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "This survey is not available." });
         var list = await _questionService.GetBySurveyIdAsync(surveyId, userId, isAdmin).ConfigureAwait(false);
         return Ok(list);
     }

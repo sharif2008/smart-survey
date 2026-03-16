@@ -17,8 +17,10 @@
               <tr>
                 <th>Title</th>
                 <th>Description</th>
+                <th>Status</th>
                 <th>Created by</th>
                 <th>Created</th>
+                <th>Closes</th>
                 <th></th>
               </tr>
             </thead>
@@ -29,8 +31,18 @@
                     <a [routerLink]="['/surveys', s.id]">{{ s.title }}</a>
                   </td>
                   <td class="text-muted">{{ s.description || '—' }}</td>
+                  <td>
+                    @if (s.status === 0) {
+                      <span class="badge bg-secondary">Draft</span>
+                    } @else if (s.status === -1) {
+                      <span class="badge bg-danger">Closed</span>
+                    } @else {
+                      <span class="badge bg-success">Active</span>
+                    }
+                  </td>
                   <td>{{ getCreatedByLabel(s) }}</td>
                   <td>{{ formatDate(s.createdAt) }}</td>
+                  <td>{{ s.endsAt ? formatDate(s.endsAt) : '—' }}</td>
                   <td>
                     <a [routerLink]="['/surveys', s.id]" class="btn btn-sm btn-outline-secondary me-1">View</a>
                     <button type="button" class="btn btn-sm btn-outline-primary me-1" (click)="openEdit(s)">Edit</button>
@@ -72,6 +84,20 @@
             <label class="form-label">Description (optional)</label>
             <textarea class="form-control" [(ngModel)]="newDescription" rows="2" placeholder="Description"></textarea>
           </div>
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" [(ngModel)]="newStatus">
+              @for (opt of statusOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+            <small class="text-muted">Draft = not accepting responses; Active = accepting; Closed = ended.</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Closing time (optional)</label>
+            <input type="datetime-local" class="form-control" [(ngModel)]="newEndsAt" />
+            <small class="text-muted">After this date/time the survey will stop accepting responses.</small>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" (click)="closeCreate()">Cancel</button>
@@ -100,6 +126,18 @@
           <div class="mb-3">
             <label class="form-label">Description (optional)</label>
             <textarea class="form-control" [(ngModel)]="newDescription" rows="2" placeholder="Description"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" [(ngModel)]="editStatus">
+              @for (opt of statusOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Closing time (optional)</label>
+            <input type="datetime-local" class="form-control" [(ngModel)]="editEndsAt" />
           </div>
         </div>
         <div class="modal-footer">

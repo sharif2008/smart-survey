@@ -27,13 +27,20 @@ public class ResponseService : IResponseService
         if (survey == null)
             return new SubmitResultDto();
 
+        var validationErrors = new List<string>();
+        if (survey.Status != 1)
+            validationErrors.Add("Survey is not accepting responses (draft or closed).");
+        if (survey.EndsAt.HasValue && DateTime.UtcNow >= survey.EndsAt.Value)
+            validationErrors.Add("Survey has ended.");
+        if (validationErrors.Count > 0)
+            return new SubmitResultDto { ValidationErrors = validationErrors };
+
         var questions = await _db.Questions
             .AsNoTracking()
             .Where(q => q.SurveyId == dto.SurveyId)
             .ToListAsync().ConfigureAwait(false);
         var questionMap = questions.ToDictionary(q => q.Id);
 
-        var validationErrors = new List<string>();
         foreach (var question in questions)
         {
             var validation = ValidationHelper.FromJson(question.ValidationJson);

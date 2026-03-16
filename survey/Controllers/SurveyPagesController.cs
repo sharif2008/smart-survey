@@ -11,10 +11,12 @@ namespace SurveyApi.Controllers;
 public class SurveyPagesController : ControllerBase
 {
     private readonly ISurveyPageService _pageService;
+    private readonly ISurveyService _surveyService;
 
-    public SurveyPagesController(ISurveyPageService pageService)
+    public SurveyPagesController(ISurveyPageService pageService, ISurveyService surveyService)
     {
         _pageService = pageService;
+        _surveyService = surveyService;
     }
 
     private (int? userId, bool isAdmin) GetCurrentUser()
@@ -26,23 +28,29 @@ public class SurveyPagesController : ControllerBase
         return (userId, isAdmin);
     }
 
-    /// <summary>GET /api/surveys/{surveyId}/pages — Get pages with nested questions (ordered by page Order then question Order).</summary>
+    /// <summary>GET /api/surveys/{surveyId}/pages — Get pages with nested questions (ordered by page Order then question Order). Only active, non-expired surveys for public.</summary>
     [HttpGet("surveys/{surveyId:int}/pages")]
     [ProducesResponseType(typeof(IEnumerable<SurveyPageDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetBySurveyId(int surveyId)
     {
         var (userId, isAdmin) = GetCurrentUser();
+        if (!userId.HasValue && !await _surveyService.IsSurveyAvailableToPublicAsync(surveyId).ConfigureAwait(false))
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "This survey is not available." });
         var list = await _pageService.GetPagesBySurveyIdAsync(surveyId, userId, isAdmin).ConfigureAwait(false);
         return Ok(list);
     }
 
-    /// <summary>GET /api/surveys/{surveyId}/pages/{pageId} — Get a single page by survey id and page id (both required).</summary>
+    /// <summary>GET /api/surveys/{surveyId}/pages/{pageId} — Get a single page by survey id and page id (both required). Only active surveys for public.</summary>
     [HttpGet("surveys/{surveyId:int}/pages/{pageId:int}")]
     [ProducesResponseType(typeof(SurveyPageDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetBySurveyIdAndPageId(int surveyId, int pageId)
     {
         var (userId, isAdmin) = GetCurrentUser();
+        if (!userId.HasValue && !await _surveyService.IsSurveyAvailableToPublicAsync(surveyId).ConfigureAwait(false))
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "This survey is not available." });
         var page = await _pageService.GetBySurveyIdAndPageIdAsync(surveyId, pageId, userId, isAdmin).ConfigureAwait(false);
         if (page == null)
             return NotFound();

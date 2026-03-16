@@ -12,6 +12,27 @@ import { QuestionType } from '../api/survey-api.model';
   selector: 'app-survey-question-renderer',
   standalone: true,
   imports: [CommonModule, FormsModule],
+  styles: [`
+    .rating-stars { font-size: 1.75rem; line-height: 1; }
+    .rating-star-btn { cursor: pointer; color: #dee2e6; transition: color 0.15s ease, transform 0.1s ease; }
+    .rating-star-btn:hover { color: #ffc107; transform: scale(1.1); }
+    .rating-star-btn.filled { color: #ffc107; }
+    .rating-star { user-select: none; }
+    .ranking-dnd-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .ranking-dnd-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.6rem 0.9rem; border-radius: 0.5rem;
+      background: #fff; border: 1px solid rgba(148, 163, 184, 0.35);
+      cursor: grab; user-select: none; transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    .ranking-dnd-item:hover { border-color: rgba(13, 110, 253, 0.4); box-shadow: 0 2px 8px rgba(13, 110, 253, 0.1); }
+    .ranking-dnd-item:active { cursor: grabbing; }
+    .ranking-dnd-item.dragging { opacity: 0.6; box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+    .ranking-dnd-item.drag-over { border-color: #0d6efd; background: rgba(13, 110, 253, 0.06); }
+    .ranking-dnd-handle { color: #94a3b8; font-size: 1.1rem; line-height: 1; }
+    .ranking-dnd-rank { font-size: 0.75rem; font-weight: 600; color: #64748b; min-width: 2rem; }
+    .ranking-dnd-label { flex: 1; }
+  `],
   template: `
     <div class="mb-3">
       <label class="form-label">
@@ -85,12 +106,16 @@ import { QuestionType } from '../api/survey-api.model';
           </div>
         }
         @case (QuestionType.Rating) {
-          <select class="form-select" [ngModel]="value()" (ngModelChange)="valueChange.emit($event)">
-            <option value="">—</option>
+          <div class="rating-stars d-flex gap-1 align-items-center" role="group" aria-label="Rating 1 to 5">
             @for (r of [1,2,3,4,5]; track r) {
-              <option [value]="r">{{ r }}</option>
+              <button type="button" class="rating-star-btn p-0 border-0 bg-transparent" [class.filled]="ratingValue() >= r" [attr.aria-pressed]="ratingValue() === r" [attr.aria-label]="'Rate ' + r + ' out of 5'" (click)="valueChange.emit(r)">
+                <span class="rating-star" aria-hidden="true">{{ ratingValue() >= r ? '★' : '☆' }}</span>
+              </button>
             }
-          </select>
+          </div>
+          @if (ratingValue()) {
+            <small class="text-muted d-block mt-1">{{ ratingValue() }} of 5</small>
+          }
         }
         @case (QuestionType.Date) {
           <input type="date" class="form-control" [ngModel]="value()" (ngModelChange)="valueChange.emit($event)" />
@@ -102,19 +127,28 @@ import { QuestionType } from '../api/survey-api.model';
           </div>
         }
         @case (QuestionType.Ranking) {
-          <div class="ranking-options">
-            @for (opt of getOptions(); track opt) {
-              <div class="mb-2 d-flex align-items-center gap-2">
-                <label class="small text-muted mb-0" style="min-width: 4rem;">Rank {{ $index + 1 }}</label>
-                <select class="form-select form-select-sm" [value]="getRankingValue($index)" (change)="setRankingValue($index, $any($event.target).value)">
-                  <option value="">—</option>
-                  @for (o of getOptions(); track o) {
-                    <option [value]="o">{{ o }}</option>
-                  }
-                </select>
+          <div class="ranking-dnd-list" role="list">
+            @for (opt of getRankingOrder(); track opt; let i = $index) {
+              <div
+                class="ranking-dnd-item"
+                [class.dragging]="rankingDraggedIndex() === i"
+                [class.drag-over]="rankingDropIndex() === i && rankingDraggedIndex() !== null"
+                draggable="true"
+                role="listitem"
+                [attr.aria-label]="'Rank ' + (i + 1) + ': ' + opt + '. Drag to reorder.'"
+                (dragstart)="rankingDragStart($event, i)"
+                (dragend)="rankingDragEnd()"
+                (dragover)="rankingDragOver($event, i)"
+                (dragleave)="rankingDragLeave(i)"
+                (drop)="rankingDrop($event, i)"
+              >
+                <span class="ranking-dnd-handle" aria-hidden="true">⋮⋮</span>
+                <span class="ranking-dnd-rank">{{ i + 1 }}</span>
+                <span class="ranking-dnd-label">{{ opt }}</span>
               </div>
             }
           </div>
+          <small class="text-muted d-block mt-2">Drag items to set your order (top = first choice).</small>
         }
         @case (QuestionType.NetPromoterScore) {
           <div class="nps-scale d-flex flex-wrap gap-1">
@@ -158,8 +192,21 @@ export class SurveyQuestionRendererComponent {
 
   selectedMultiple = signal<string[]>([]);
 
+  /** Drag-and-drop ranking: index being dragged, or null */
+  rankingDraggedIndex = signal<number | null>(null);
+  /** Drag-over target index for visual feedback */
+  rankingDropIndex = signal<number | null>(null);
+
   /** 0–10 scale for Net Promoter Score */
   readonly npsScale = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  /** Current rating value (1–5) for Rating question type */
+  ratingValue(): number {
+    const v = this.value();
+    if (v == null || v === '') return 0;
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isFinite(n) && n >= 1 && n <= 5 ? n : 0;
+  }
 
   toggleMultiOption(opt: string, checked: boolean): void {
     const current = this.selectedMultiple();
@@ -168,22 +215,71 @@ export class SurveyQuestionRendererComponent {
     this.valueChange.emit(next);
   }
 
-  /** Ranking: get option at 0-based rank position from stored comma-separated value */
-  getRankingValue(rankIndex: number): string {
+  /** Ranking: current ordered list (from value or default options order). Used for drag-and-drop display. */
+  getRankingOrder(): string[] {
+    const opts = this.getOptions();
+    if (opts.length === 0) return [];
     const v = this.value();
     const str = typeof v === 'string' ? v : Array.isArray(v) ? (v as string[]).join(',') : '';
     const parts = str ? str.split(',').map((s) => s.trim()).filter(Boolean) : [];
-    return parts[rankIndex] ?? '';
+    if (parts.length === 0) return [...opts];
+    const set = new Set(parts);
+    const rest = opts.filter((o) => !set.has(o));
+    return [...parts, ...rest];
+  }
+
+  rankingDragStart(ev: DragEvent, index: number): void {
+    this.rankingDraggedIndex.set(index);
+    if (ev.dataTransfer) {
+      ev.dataTransfer.effectAllowed = 'move';
+      ev.dataTransfer.setData('text/plain', String(index));
+    }
+  }
+
+  rankingDragEnd(): void {
+    this.rankingDraggedIndex.set(null);
+    this.rankingDropIndex.set(null);
+  }
+
+  rankingDragOver(ev: DragEvent, index: number): void {
+    ev.preventDefault();
+    if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+    if (this.rankingDraggedIndex() !== null) this.rankingDropIndex.set(index);
+  }
+
+  rankingDragLeave(_index: number): void {
+    this.rankingDropIndex.set(null);
+  }
+
+  rankingDrop(ev: DragEvent, toIndex: number): void {
+    ev.preventDefault();
+    const fromIndex = this.rankingDraggedIndex();
+    if (fromIndex === null) return;
+    const order = this.getRankingOrder();
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= order.length || toIndex >= order.length) {
+      this.rankingDraggedIndex.set(null);
+      this.rankingDropIndex.set(null);
+      return;
+    }
+    const item = order[fromIndex];
+    const next = order.filter((_, i) => i !== fromIndex);
+    next.splice(toIndex, 0, item);
+    this.valueChange.emit(next.join(','));
+    this.rankingDraggedIndex.set(null);
+    this.rankingDropIndex.set(null);
+  }
+
+  /** Ranking: get option at 0-based rank position from stored comma-separated value */
+  getRankingValue(rankIndex: number): string {
+    const order = this.getRankingOrder();
+    return order[rankIndex] ?? '';
   }
 
   /** Ranking: set option at rank position and emit full comma-separated ranking */
   setRankingValue(rankIndex: number, option: string): void {
-    const opts = this.getOptions();
-    const v = this.value();
-    const parts = (typeof v === 'string' ? v.split(',').map((s) => s.trim()) : Array.isArray(v) ? [...v] : []).filter(Boolean);
-    while (parts.length < opts.length) parts.push('');
-    parts[rankIndex] = option || '';
-    const next = parts.filter(Boolean);
-    this.valueChange.emit(next.join(','));
+    const order = this.getRankingOrder();
+    const next = [...order];
+    next[rankIndex] = option || '';
+    this.valueChange.emit(next.filter(Boolean).join(','));
   }
 }

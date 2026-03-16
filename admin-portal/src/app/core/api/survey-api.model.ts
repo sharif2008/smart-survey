@@ -6,16 +6,27 @@ export interface SurveyDto {
   description?: string;
   researcherId: number;
   createdAt: string;
+  /** Optional end date/time (ISO string); after this the survey stops accepting responses. */
+  endsAt?: string | null;
+  /** 0 = Draft, 1 = Active, -1 = Closed. */
+  status?: number;
 }
 
 export interface CreateSurveyDto {
   title: string;
   description?: string;
+  /** Optional closing/end time (ISO string). */
+  endsAt?: string | null;
+  /** 0 = Draft, 1 = Active, -1 = Closed. Defaults to 1 if not set. */
+  status?: number;
 }
 
 export interface UpdateSurveyDto {
   title: string;
   description?: string;
+  endsAt?: string | null;
+  /** 0 = Draft, 1 = Active, -1 = Closed. */
+  status?: number;
 }
 
 export enum QuestionType {

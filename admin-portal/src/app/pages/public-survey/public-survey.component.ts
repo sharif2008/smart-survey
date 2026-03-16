@@ -70,19 +70,51 @@ export class PublicSurveyComponent implements OnInit {
     this.pagesWithQuestions = [];
     this.cdr.detectChanges();
 
-    forkJoin({
-      survey: this.api.getSurvey(this.surveyId),
-      pages: this.api.getPages(this.surveyId),
-      questions: this.api.getQuestions(this.surveyId)
-    }).subscribe({
-      next: ({ survey, pages, questions }) => {
+    // Step 1: Load survey only. If not active or expired, show error and do not load form (pages/questions).
+    this.api.getSurveyPublic(this.surveyId).subscribe({
+      next: (survey) => {
         if (!survey) {
           this.error = 'Survey not found.';
           this.loading = false;
           this.cdr.detectChanges();
           return;
         }
+        if (survey.status !== 1) {
+          this.error = 'This survey is not available.';
+          this.loading = false;
+          this.cdr.detectChanges();
+          return;
+        }
+        if (survey.endsAt) {
+          try {
+            const end = new Date(survey.endsAt).getTime();
+            if (Number.isFinite(end) && Date.now() >= end) {
+              this.error = 'This survey has ended.';
+              this.loading = false;
+              this.cdr.detectChanges();
+              return;
+            }
+          } catch {
+            // ignore
+          }
+        }
         this.survey = survey;
+        this.loadPagesAndQuestions();
+      },
+      error: (err: { message?: string }) => {
+        this.error = err?.message ?? 'This survey is not available.';
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private loadPagesAndQuestions(): void {
+    forkJoin({
+      pages: this.api.getPagesPublic(this.surveyId),
+      questions: this.api.getQuestionsPublic(this.surveyId)
+    }).subscribe({
+      next: ({ pages, questions }) => {
         this.pages = pages;
         const sortedPages = [...pages].sort((a, b) => a.order - b.order);
         this.pagesWithQuestions = sortedPages.map((page) => ({
@@ -93,7 +125,6 @@ export class PublicSurveyComponent implements OnInit {
         }));
         this.loading = false;
 
-        // Restore any saved in-progress answers/page for this browser + survey.
         if (!this.submitted && typeof window !== 'undefined') {
           const raw = window.localStorage.getItem(this.progressKey);
           if (raw) {
@@ -118,8 +149,8 @@ export class PublicSurveyComponent implements OnInit {
 
         this.cdr.detectChanges();
       },
-      error: () => {
-        this.error = 'Failed to load survey.';
+      error: (err: { message?: string }) => {
+        this.error = err?.message ?? 'Failed to load survey.';
         this.loading = false;
         this.cdr.detectChanges();
       }

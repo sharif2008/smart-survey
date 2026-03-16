@@ -154,53 +154,6 @@
                 }
               </div>
             </div>
-            <div class="card h-100">
-              <div class="card-header py-2 d-flex justify-content-between align-items-center">
-                <strong>Question settings</strong>
-                @if (editQuestionModal) {
-                  <button type="button" class="btn btn-sm btn-link text-muted p-0" (click)="clearSelectedQuestion()">Close</button>
-                }
-              </div>
-              <div class="card-body overflow-auto">
-                @if (!editQuestionModal) {
-                  <p class="text-muted small mb-0">Select a question in the canvas to edit its settings.</p>
-                } @else {
-                  <div class="question-settings-form">
-                    <div class="mb-2"><label class="form-label small">Label / Text</label><input type="text" class="form-control form-control-sm" [(ngModel)]="editQText" placeholder="Question text" /></div>
-                    <div class="mb-2"><label class="form-label small">Type</label><select class="form-select form-select-sm" [(ngModel)]="editQType">@for (t of questionTypes; track t.value) { <option [ngValue]="t.value">{{ t.label }}</option> }</select></div>
-                    @if (showEditQOptions) {
-                      <div class="mb-2"><label class="form-label small">Options (one per line)</label><textarea class="form-control form-control-sm" [(ngModel)]="editQOptionsInput" rows="3"></textarea></div>
-                    }
-                    <div class="mb-2"><label class="form-label small">Order</label><input type="number" class="form-control form-control-sm" [(ngModel)]="editQOrder" min="0" /></div>
-                    @if (pages.length > 0) {
-                      <div class="mb-2"><label class="form-label small">Page</label><select class="form-select form-select-sm" [(ngModel)]="editQPageId">
-                        @for (p of pages; track p.id) { <option [ngValue]="p.id">{{ p.title || 'Page ' + (p.order + 1) }}</option> }
-                      </select></div>
-                    }
-                    <div class="form-check mb-2"><input type="checkbox" class="form-check-input" id="editQRequired" [(ngModel)]="editQRequired" /><label class="form-check-label small" for="editQRequired">Required</label></div>
-                    <hr class="my-2" />
-                    <h6 class="small">Conditional visibility (show if)</h6>
-                    <div class="mb-2"><label class="form-label small">Question ID</label><input type="number" class="form-control form-control-sm" [(ngModel)]="editQShowIfQuestionId" placeholder="ID of question" min="0" /></div>
-                    <div class="mb-2"><label class="form-label small">Operator</label><select class="form-select form-select-sm" [(ngModel)]="editQShowIfOperator"><option value="equals">equals</option><option value="notEquals">not equals</option><option value="contains">contains</option></select></div>
-                    <div class="mb-2"><label class="form-label small">Value</label><input type="text" class="form-control form-control-sm" [(ngModel)]="editQShowIfValue" placeholder="Value to compare" /></div>
-                    <hr class="my-2" />
-                    <h6 class="small">Validation</h6>
-                    <div class="row g-1 mb-2">
-                      <div class="col-6"><label class="form-label small">Min length</label><input type="number" class="form-control form-control-sm" [(ngModel)]="editQValMinLength" min="0" /></div>
-                      <div class="col-6"><label class="form-label small">Max length</label><input type="number" class="form-control form-control-sm" [(ngModel)]="editQValMaxLength" min="0" /></div>
-                    </div>
-                    <div class="mb-2"><label class="form-label small">Regex</label><input type="text" class="form-control form-control-sm" [(ngModel)]="editQValRegex" placeholder="e.g. ^[A-Za-z]+$" /></div>
-                    <div class="row g-1 mb-2">
-                      <div class="col-6"><label class="form-label small">Min number</label><input type="number" class="form-control form-control-sm" [(ngModel)]="editQValMinNumber" /></div>
-                      <div class="col-6"><label class="form-label small">Max number</label><input type="number" class="form-control form-control-sm" [(ngModel)]="editQValMaxNumber" /></div>
-                    </div>
-                    <button type="button" class="btn btn-primary btn-sm w-100 question-settings-save" [disabled]="!editQText?.trim() || editQuestionSaving" (click)="saveEditQuestion()">
-                      <span class="text-white">{{ editQuestionSaving ? 'Saving…' : 'Save' }}</span>
-                    </button>
-                  </div>
-                }
-              </div>
-            </div>
           </div>
         </div>
       }
@@ -523,6 +476,18 @@
         <div class="modal-body">
           <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" [(ngModel)]="editTitle" /></div>
           <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" [(ngModel)]="editDescription" rows="2"></textarea></div>
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" [(ngModel)]="editStatus">
+              @for (opt of statusOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Closing time (optional)</label>
+            <input type="datetime-local" class="form-control" [(ngModel)]="editEndsAt" />
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" (click)="closeEditSurvey()">Cancel</button>
@@ -596,7 +561,7 @@
           @if (pages.length > 0) {
             <div class="mb-3 mt-2"><label class="form-label">Page</label><select class="form-select" [(ngModel)]="qPageId">
               <option [ngValue]="null">—</option>
-              @for (p of pages; track p.id) { <option [ngValue]="p.id">{{ p.title || 'Page ' + p.order }}</option> }
+              @for (p of pages; track p.id) { <option [ngValue]="p.id">{{ p.title || 'Page ' + (p.order + 1) }}</option> }
             </select></div>
           }
         </div>

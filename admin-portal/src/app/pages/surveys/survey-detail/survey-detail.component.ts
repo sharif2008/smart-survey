@@ -71,7 +71,15 @@ export class SurveyDetailComponent implements OnInit {
   editSurveyModal = false;
   editTitle = '';
   editDescription = '';
+  editEndsAt = '';
+  editStatus = 1;
   editSurveySaving = false;
+
+  readonly statusOptions = [
+    { value: 0, label: 'Draft' },
+    { value: 1, label: 'Active' },
+    { value: -1, label: 'Closed' }
+  ] as const;
 
   addPageModal = false;
   pageTitle = '';
@@ -399,7 +407,25 @@ export class SurveyDetailComponent implements OnInit {
     if (!this.survey) return;
     this.editTitle = this.survey.title;
     this.editDescription = this.survey.description ?? '';
+    this.editEndsAt = this.toDatetimeLocal(this.survey.endsAt);
+    this.editStatus = this.survey.status ?? 1;
     this.editSurveyModal = true;
+  }
+
+  toDatetimeLocal(iso: string | null | undefined): string {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const h = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${day}T${h}:${min}`;
+    } catch {
+      return '';
+    }
   }
 
   closeEditSurvey(): void {
@@ -411,7 +437,13 @@ export class SurveyDetailComponent implements OnInit {
     const title = this.editTitle?.trim();
     if (!title) return;
     this.editSurveySaving = true;
-    this.api.updateSurvey(this.survey.id, { title, description: this.editDescription?.trim() || undefined }).subscribe({
+    const endsAt = this.editEndsAt?.trim() ? new Date(this.editEndsAt).toISOString() : undefined;
+    this.api.updateSurvey(this.survey.id, {
+      title,
+      description: this.editDescription?.trim() || undefined,
+      endsAt: endsAt ?? null,
+      status: this.editStatus
+    }).subscribe({
       next: (updated) => {
         this.editSurveySaving = false;
         this.closeEditSurvey();
@@ -500,12 +532,18 @@ export class SurveyDetailComponent implements OnInit {
     this.openAddQuestionWithType(QuestionType.Text);
   }
 
+  /** First page by order (actual page 1); use for default selection when adding a question. */
+  private get firstPageByOrder(): SurveyPageDto | undefined {
+    if (this.pages.length === 0) return undefined;
+    return this.pages.slice().sort((a, b) => a.order - b.order)[0];
+  }
+
   openAddQuestionWithType(type: QuestionType): void {
     this.qText = '';
     this.qType = type;
     this.qRequired = false;
     this.qOrder = this.questions.length + 1;
-    this.qPageId = this.pages.length > 0 ? this.pages[0].id : null;
+    this.qPageId = this.firstPageByOrder?.id ?? null;
     this.qOptionsInput = '';
     this.addQuestionModal = true;
     this.activeTab = 'builder';
@@ -518,12 +556,14 @@ export class SurveyDetailComponent implements OnInit {
   saveAddQuestion(): void {
     const text = this.qText?.trim();
     if (!text) return;
+    // Only allow page IDs that belong to this survey (pages are loaded via getPages(surveyId))
+    const validPageId = this.qPageId != null && this.pages.some((p) => p.id === this.qPageId) ? this.qPageId : (this.firstPageByOrder?.id ?? undefined);
     this.addQuestionSaving = true;
     const optionsJson = this.buildOptionsJson(this.qOptionsInput);
     const type = typeof this.qType === 'number' ? this.qType : Number(this.qType);
     const dto: CreateQuestionDto = {
       surveyId: this.surveyId,
-      pageId: this.qPageId ?? undefined,
+      pageId: validPageId,
       text,
       type,
       isRequired: this.qRequired,
@@ -552,7 +592,8 @@ export class SurveyDetailComponent implements OnInit {
     this.editQType = q.type;
     this.editQRequired = q.isRequired;
     this.editQOrder = q.order;
-    this.editQPageId = q.pageId ?? null;
+    const pageExists = q.pageId != null && this.pages.some((p) => p.id === q.pageId);
+    this.editQPageId = pageExists ? q.pageId! : (this.firstPageByOrder?.id ?? null);
     this.editQOptionsInput = this.parseOptionsToLines(q.optionsJson);
     this.editQShowIfQuestionId = q.showIf?.questionId ?? null;
     this.editQShowIfOperator = q.showIf?.operator ?? 'equals';
@@ -614,6 +655,8 @@ export class SurveyDetailComponent implements OnInit {
     if (!this.editQuestionModal) return;
     const text = this.editQText?.trim();
     if (!text) return;
+    // Only allow page IDs that belong to this survey (pages are loaded via getPages(surveyId))
+    const validPageId = this.editQPageId != null && this.pages.some((p) => p.id === this.editQPageId) ? this.editQPageId : (this.firstPageByOrder?.id ?? undefined);
     this.editQuestionSaving = true;
     this.cdr.detectChanges();
     const optionsJson = this.buildOptionsJson(this.editQOptionsInput);
@@ -632,7 +675,7 @@ export class SurveyDetailComponent implements OnInit {
       text,
       type,
       isRequired: this.editQRequired,
-      pageId: this.editQPageId ?? undefined,
+      pageId: validPageId,
       order: this.editQOrder,
       optionsJson: optionsJson ?? undefined,
       showIf,

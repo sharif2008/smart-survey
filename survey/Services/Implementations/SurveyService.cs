@@ -31,7 +31,7 @@ public class SurveyService : ISurveyService
                 ResearcherId = s.ResearcherId,
                 CreatedAt = s.CreatedAt,
                 EndsAt = s.EndsAt,
-                IsClosed = s.IsClosed
+                Status = s.Status
             })
             .ToListAsync()
             .ConfigureAwait(false);
@@ -52,8 +52,20 @@ public class SurveyService : ISurveyService
             ResearcherId = survey.ResearcherId,
             CreatedAt = survey.CreatedAt,
             EndsAt = survey.EndsAt,
-            IsClosed = survey.IsClosed
+            Status = survey.Status
         };
+    }
+
+    public async Task<bool> IsSurveyAvailableToPublicAsync(int surveyId)
+    {
+        var survey = await _db.Surveys.AsNoTracking().FirstOrDefaultAsync(s => s.Id == surveyId).ConfigureAwait(false);
+        if (survey == null)
+            return false;
+        if (survey.Status != 1)
+            return false;
+        if (survey.EndsAt.HasValue && DateTime.UtcNow >= survey.EndsAt.Value)
+            return false;
+        return true;
     }
 
     public async Task<SurveyResponseDto?> CreateAsync(CreateSurveyDto dto, int researcherId)
@@ -63,7 +75,8 @@ public class SurveyService : ISurveyService
             Title = dto.Title,
             Description = dto.Description,
             ResearcherId = researcherId,
-            EndsAt = dto.EndsAt
+            EndsAt = dto.EndsAt,
+            Status = dto.Status ?? 1
         };
         _db.Surveys.Add(survey);
         await _db.SaveChangesAsync().ConfigureAwait(false);
@@ -82,8 +95,8 @@ public class SurveyService : ISurveyService
         survey.Description = dto.Description;
         if (dto.EndsAt.HasValue)
             survey.EndsAt = dto.EndsAt;
-        if (dto.IsClosed.HasValue)
-            survey.IsClosed = dto.IsClosed.Value;
+        if (dto.Status.HasValue)
+            survey.Status = dto.Status.Value;
         await _db.SaveChangesAsync().ConfigureAwait(false);
         return await GetByIdAsync(id, researcherId, isAdmin).ConfigureAwait(false);
     }

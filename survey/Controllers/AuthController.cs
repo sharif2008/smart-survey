@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SurveyApi.DTOs.Auth;
 using SurveyApi.Services.Interfaces;
@@ -15,8 +16,9 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
-    /// <summary>POST /api/auth/register — Register a new user (Admin or Researcher).</summary>
+    /// <summary>POST /api/auth/register — Register a new user (Admin or Researcher). Admin only.</summary>
     [HttpPost("register")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]

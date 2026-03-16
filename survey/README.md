@@ -1,15 +1,18 @@
 ## Survey API
 
-Backend REST API for building, running, and analyzing online surveys. It supports authenticated survey authors (Admins / Researchers) and anonymous or authenticated participants.
+Backend REST API and Angular admin UI for building, running, and analyzing online surveys. It supports authenticated survey authors (Admins / Researchers) and anonymous or authenticated participants.
 
-- **Tech stack**: ASP.NET Core, Entity Framework Core, SQL Server / MySQL, JWT auth, Serilog logging.
-- **Main capabilities**: user management, survey + page + question management, dynamic validation, conditional logic (“show if”), analytics, export, and response rate limiting.
+- **What this project is**: A survey platform where researchers design surveys in a browser, collect responses from participants, and explore analytics via dashboards.
+- **Tech stack**:
+  - Backend: ASP.NET Core, Entity Framework Core, SQL Server / MySQL, JWT auth, Serilog logging.
+  - Frontend: Angular admin portal (`admin-portal`) plus a public survey page for participants.
+- **Main capabilities**: user management, survey + page + question management, dynamic validation, conditional logic (“show if”), analytics, export, response rate limiting, and shareable public survey links.
 
 ---
 
 ## High‑level architecture
 
-- **API project**: `SurveyApi` (this folder).
+- **API project**: `SurveyApi` (this folder, .NET backend).
 - **Data layer**: `AppDbContext` with entities for `User`, `Role`, `Survey`, `SurveyPage`, `Question`, `SurveyResponse`, `Answer`.
 - **Services**:
   - `AuthService`, `TokenService`, `UserService`
@@ -23,6 +26,15 @@ Backend REST API for building, running, and analyzing online surveys. It support
   - `ExceptionMiddleware` – consistent error responses + logging
   - `SubmissionRateLimitMiddleware` – throttles incoming responses
   - `AnswerValidator`, `ValidationHelper`, `ShowIfHelper` – validation and conditional logic helpers
+- **Frontend apps**:
+  - Angular **admin portal** (`admin-portal`) for login, dashboard, survey builder, responses, and analytics.
+  - Angular **public survey** page for participants (no login).
+
+Typical flow:
+
+- Admin/Researcher logs into the admin portal → creates surveys → shares public links.
+- Participants open the public link and submit responses.
+- Backend stores data and exposes analytics and exports for the admin portal.
 
 Swagger is enabled in **Development** for discovery and manual testing.
 
@@ -213,7 +225,23 @@ Key configuration lives in `appsettings.json` / `appsettings.Development.json` a
 
 ---
 
+## Authentication model
+
+- **JWT bearer auth** is used for all protected endpoints.
+- **Roles**:
+  - `Admin` – manage users, all surveys, and analytics.
+  - `Researcher` – manage own surveys and view their analytics.
+  - `Participant` – optional role; public survey endpoints do not require login.
+- **Flow**:
+  - Client calls `POST /api/auth/login` with email/password.
+  - API returns a JWT plus user info.
+  - Frontend stores the token and sends it in `Authorization: Bearer <token>` for subsequent requests.
+
+---
+
 ## Setup & running locally
+
+### Backend (Survey API)
 
 1. **Restore and build**
    ```bash
@@ -260,6 +288,32 @@ On first run, an **Admin** user is seeded:
 
 ---
 
+### Frontend (Angular admin portal & public survey)
+
+1. **Install dependencies**
+   ```bash
+   cd admin-portal
+   npm install   # or: yarn install
+   ```
+
+2. **Configure API URL**
+   - In `admin-portal/src/environments/environment.ts`, set `apiUrl` to your backend base URL, for example:
+     ```ts
+     export const environment = {
+       production: false,
+       apiUrl: 'http://localhost:5008'
+     };
+     ```
+
+3. **Run the frontend**
+   ```bash
+   npm start     # or: yarn start
+   ```
+
+4. Open the admin portal at `http://localhost:4200`, log in with the Admin account, and start creating surveys.
+
+---
+
 ## Core API surface & roles
 
 A complete endpoint table with examples is in `README_API.md`. High‑level groups:
@@ -300,6 +354,27 @@ A complete endpoint table with examples is in `README_API.md`. High‑level grou
 See `README_API.md` and `Docs/README.md` for exact request/response shapes.
 
 ---
+
+## Project structure (top‑level)
+
+```text
+survey/           # .NET API (SurveyApi backend)
+  Controllers/
+  Data/
+  DTOs/
+  Models/
+  Services/
+  Docs/
+  Migrations/
+  README.md
+
+admin-portal/     # Angular frontend
+  src/app/
+    core/         # API models, services, shared survey components
+    pages/        # UI pages (surveys list, detail, dashboard, public survey)
+  package.json
+  angular.json
+```
 
 ## Typical workflows
 
@@ -361,6 +436,34 @@ See `README_API.md` and `Docs/README.md` for exact request/response shapes.
 4. Use dashboard endpoints for cross‑survey views and KPIs.
 
 ---
+
+## Dashboard KPIs
+
+The **Analytics** tab in the admin portal surfaces key performance indicators for a survey:
+
+- **Total responses** – total number of completed responses.
+- **Active responses** – optionally, responses that match “active” rules (or equals total responses).
+- **Average completion time** – average time from survey start to submission, rendered as `mm:ss`.
+- **Duration** – number of days between the first and latest response.
+- **Per‑question charts** – show distributions (e.g. rating histograms, choice counts, yes/no percentages, date trends) derived from the summary API.
+
+---
+
+## Screenshots (recommended)
+
+For your report or BIRG demo, add screenshots (PNG/JPEG) to a `Docs/screenshots/` folder and reference them here, for example:
+
+- **Survey builder** – pages, question types, and the canvas.
+- **Responses tab** – list of responses with the export actions.
+- **Summary / Analytics** – charts and KPIs for one survey.
+- **Public survey form** – what participants see when filling out the survey.
+
+Example (once images are added):
+
+```md
+![Survey builder](Docs/screenshots/survey-builder.png)
+![Analytics dashboard](Docs/screenshots/analytics-dashboard.png)
+```
 
 ## Advanced & extension points
 

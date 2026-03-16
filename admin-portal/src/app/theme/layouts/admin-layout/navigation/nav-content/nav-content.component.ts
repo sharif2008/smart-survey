@@ -13,15 +13,17 @@ import { NavGroupComponent } from './nav-group/nav-group.component';
 // icon
 import { IconService } from '@ant-design/icons-angular';
 import {
-  DashboardOutline,
-  CreditCardOutline,
-  LoginOutline,
-  QuestionOutline,
-  ChromeOutline,
-  FontSizeOutline,
-  ProfileOutline,
+  AntDesignOutline,
   BgColorsOutline,
-  AntDesignOutline
+  ChromeOutline,
+  CreditCardOutline,
+  DashboardOutline,
+  FontSizeOutline,
+  LoginOutline,
+  ProfileOutline,
+  QuestionOutline,
+  UnorderedListOutline,
+  UserOutline
 } from '@ant-design/icons-angular/icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 
@@ -60,7 +62,10 @@ export class NavContentComponent implements OnInit {
         BgColorsOutline,
         AntDesignOutline,
         ChromeOutline,
-        QuestionOutline
+        QuestionOutline,
+        // Navigation icons used in navigation.ts
+        UnorderedListOutline,
+        UserOutline
       ]
     );
     this.navigations = NavigationItems;

@@ -35,14 +35,59 @@
   letter-spacing: 0.01em;
 }
 
-.survey-form-card .page-header {
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: linear-gradient(90deg, rgba(13, 110, 253, 0.06), rgba(32, 201, 151, 0.04));
+/* Survey-level header: title and description */
+.survey-header {
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  margin-bottom: 0;
 }
 
-.survey-form-card .page-header h2 {
-  margin-bottom: 0.125rem;
+.survey-header-top {
+  margin-bottom: 0.75rem;
+}
+
+.survey-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1e293b;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.survey-description {
+  font-size: 1rem;
+  line-height: 1.55;
+  color: #64748b;
+  margin: 0;
+  max-width: 36rem;
+}
+
+/* Page-level title and info */
+.page-info {
+  margin-bottom: 1.5rem;
+}
+
+.page-info-inner {
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.06), rgba(32, 201, 151, 0.05));
+  border-left: 4px solid #0d6efd;
+}
+
+.page-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 0.35rem;
+  line-height: 1.35;
+}
+
+.page-description {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #64748b;
+  margin: 0;
 }
 
 .survey-form-card .questions {
@@ -70,12 +115,15 @@
 }
 
 .public-alert {
-  max-width: 32rem;
+  max-width: 40rem;
+  padding: 1.25rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 0.75rem;
 }
 
-.survey-header h1 {
-  font-weight: 600;
-  letter-spacing: 0.01em;
+.page-indicator {
+  font-size: 0.8125rem;
+  font-weight: 500;
 }
 
 .brand-stack {
@@ -187,5 +235,21 @@
   .survey-form-card .card-body,
   .thank-you-card .card-body {
     padding: 1.5rem 1.25rem;
+  }
+
+  .survey-title {
+    font-size: 1.25rem;
+  }
+
+  .survey-description {
+    font-size: 0.9375rem;
+  }
+
+  .page-info-inner {
+    padding: 0.875rem 1rem;
+  }
+
+  .page-title {
+    font-size: 1rem;
   }
 }

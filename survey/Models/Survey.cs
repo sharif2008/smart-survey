@@ -12,8 +12,8 @@ public class Survey
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     /// <summary>Optional end date/time; after this the survey is no longer accepting responses.</summary>
     public DateTime? EndsAt { get; set; }
-    /// <summary>When true, survey is manually closed and no longer accepting responses.</summary>
-    public bool IsClosed { get; set; }
+    /// <summary>0 = Draft, 1 = Active, -1 = Closed. Only Active (1) surveys accept responses (subject to EndsAt).</summary>
+    public int Status { get; set; } = 1;
     /// <summary>When set, survey is soft-deleted and excluded from all queries.</summary>
     public DateTime? DeletedAt { get; set; }
 

@@ -26,25 +26,23 @@
     } @else {
       <div class="survey-form-card card shadow-sm mx-auto animate-in">
         <div class="card-body">
-          <div class="survey-header d-flex justify-content-between align-items-start mb-3">
-            <div class="brand-stack">
+          <header class="survey-header">
+            <div class="survey-header-top d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
               <div class="brand-pill">
                 <span class="brand-mark">S</span>
                 <span class="brand-text">SurveyMind</span>
               </div>
-              <div>
-                <h1 class="h4 mb-1">{{ survey.title }}</h1>
-                @if (survey.description) {
-                  <p class="text-muted small mb-0">{{ survey.description }}</p>
-                }
-              </div>
+              <span class="page-indicator text-muted">
+                Page {{ currentPageIndex + 1 }} of {{ pagesWithQuestions.length }}
+              </span>
             </div>
-            <div class="badge bg-light text-muted small px-2 py-1 rounded-pill">
-              Page {{ currentPageIndex + 1 }} / {{ pagesWithQuestions.length }}
-            </div>
-          </div>
+            <h1 class="survey-title">{{ survey.title }}</h1>
+            @if (survey.description) {
+              <p class="survey-description">{{ survey.description }}</p>
+            }
+          </header>
 
-          <div class="progress progress-thin mb-3" aria-hidden="true">
+          <div class="progress progress-thin mb-4" aria-hidden="true">
             <div
               class="progress-bar"
               role="progressbar"
@@ -53,14 +51,18 @@
           </div>
 
           @if (currentPageData) {
-            <div class="page-header mb-3">
-              @if (currentPageData.page.title) {
-                <h2 class="h6 text-secondary">{{ currentPageData.page.title }}</h2>
-              }
-              @if (currentPageData.page.description) {
-                <p class="small text-muted mb-0">{{ currentPageData.page.description }}</p>
-              }
-            </div>
+            @if (currentPageData.page.title || currentPageData.page.description) {
+              <section class="page-info mb-4" aria-label="Current page">
+                <div class="page-info-inner">
+                  @if (currentPageData.page.title) {
+                    <h2 class="page-title">{{ currentPageData.page.title }}</h2>
+                  }
+                  @if (currentPageData.page.description) {
+                    <p class="page-description">{{ currentPageData.page.description }}</p>
+                  }
+                </div>
+              </section>
+            }
             <div class="questions">
               @for (q of currentPageData.questions; track q.id) {
                 <div class="question-card">

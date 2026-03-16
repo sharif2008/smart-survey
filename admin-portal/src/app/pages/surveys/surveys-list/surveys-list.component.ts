@@ -24,9 +24,22 @@ export class SurveysListComponent implements OnInit {
   editSurvey: SurveyDto | null = null;
   newTitle = '';
   newDescription = '';
+  /** Closing/end time for new survey (datetime-local format: yyyy-MM-ddTHH:mm). */
+  newEndsAt = '';
+  /** 0 = Draft, 1 = Active, -1 = Closed. */
+  newStatus = 1;
   createSaving = false;
   editSaving = false;
+  /** Closing time when editing (datetime-local format). */
+  editEndsAt = '';
+  editStatus = 1;
   deleteId: number | null = null;
+
+  readonly statusOptions = [
+    { value: 0, label: 'Draft' },
+    { value: 1, label: 'Active' },
+    { value: -1, label: 'Closed' }
+  ] as const;
 
   constructor(
     private api: SurveyApiService,
@@ -70,6 +83,8 @@ export class SurveysListComponent implements OnInit {
   openCreate(): void {
     this.newTitle = '';
     this.newDescription = '';
+    this.newEndsAt = '';
+    this.newStatus = 1;
     this.createModal = true;
   }
 
@@ -81,6 +96,31 @@ export class SurveysListComponent implements OnInit {
     this.editSurvey = s;
     this.newTitle = s.title;
     this.newDescription = s.description ?? '';
+    this.editEndsAt = this.toDatetimeLocal(s.endsAt);
+    this.editStatus = s.status ?? 1;
+  }
+
+  getStatusLabel(status: number | undefined): string {
+    if (status === 0) return 'Draft';
+    if (status === -1) return 'Closed';
+    return 'Active';
+  }
+
+  /** Convert ISO endsAt to datetime-local input value (yyyy-MM-ddTHH:mm). */
+  toDatetimeLocal(iso: string | null | undefined): string {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const h = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${day}T${h}:${min}`;
+    } catch {
+      return '';
+    }
   }
 
   closeEdit(): void {
@@ -92,7 +132,13 @@ export class SurveysListComponent implements OnInit {
     const title = this.newTitle?.trim();
     if (!title) return;
     this.editSaving = true;
-    const dto: UpdateSurveyDto = { title, description: this.newDescription?.trim() || undefined };
+    const endsAt = this.editEndsAt?.trim() ? new Date(this.editEndsAt).toISOString() : undefined;
+    const dto: UpdateSurveyDto = {
+      title,
+      description: this.newDescription?.trim() || undefined,
+      endsAt: endsAt ?? null,
+      status: this.editStatus
+    };
     this.api.updateSurvey(this.editSurvey.id, dto).subscribe({
       next: (updated) => {
         this.editSaving = false;
@@ -109,7 +155,13 @@ export class SurveysListComponent implements OnInit {
     const title = this.newTitle?.trim();
     if (!title) return;
     this.createSaving = true;
-    const dto: CreateSurveyDto = { title, description: this.newDescription?.trim() || undefined };
+    const endsAt = this.newEndsAt?.trim() ? new Date(this.newEndsAt).toISOString() : undefined;
+    const dto: CreateSurveyDto = {
+      title,
+      description: this.newDescription?.trim() || undefined,
+      endsAt: endsAt ?? undefined,
+      status: this.newStatus
+    };
     this.api.createSurvey(dto).subscribe({
       next: (survey) => {
         this.createSaving = false;

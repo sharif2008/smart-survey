@@ -8,7 +8,9 @@ namespace SurveyApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+// Admin and Researcher can access user management endpoints,
+// but only Admin can create new users (see [Authorize] on Create).
+[Authorize(Roles = "Admin,Researcher")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -41,6 +43,7 @@ public class UsersController : ControllerBase
 
     /// <summary>POST /api/users — Create user (Admin only).</summary>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]

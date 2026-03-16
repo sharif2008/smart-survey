@@ -161,9 +161,10 @@ public class SurveysController : ControllerBase
         return Ok(list);
     }
 
-    /// <summary>GET /api/surveys/{id} — Get survey by id (public for participants to view survey details).</summary>
+    /// <summary>GET /api/surveys/{id} — Get survey by id (public for participants to view survey details). Only active surveys are available to the public.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(SurveyResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
@@ -171,6 +172,16 @@ public class SurveysController : ControllerBase
         var survey = await _surveyService.GetByIdAsync(id, userId, isAdmin).ConfigureAwait(false);
         if (survey == null)
             return NotFound();
+
+        // Public (unauthenticated) callers may only access active surveys that have not ended
+        if (!userId.HasValue)
+        {
+            if (survey.Status != 1)
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "This survey is not available." });
+            if (survey.EndsAt.HasValue && DateTime.UtcNow >= survey.EndsAt.Value)
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "This survey has ended." });
+        }
+
         return Ok(survey);
     }
 

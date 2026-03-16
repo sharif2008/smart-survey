@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpContext } from '@angular/common/http';
 import { Observable, catchError, of, map, throwError } from 'rxjs';
+import { SKIP_AUTH_FOR_PUBLIC_SURVEY } from '../interceptors/auth.interceptor';
 import { environment } from '../../../environments/environment';
 import type {
   SurveyDto,
@@ -22,12 +23,16 @@ import type {
 /** Normalize survey from API (handles PascalCase or camelCase). */
 function toSurveyDto(raw: Record<string, unknown>): SurveyDto {
   const desc = raw['description'] ?? raw['Description'];
+  const endsAt = raw['endsAt'] ?? raw['EndsAt'];
+  const status = raw['status'] ?? raw['Status'];
   return {
     id: Number((raw['id'] ?? raw['Id']) ?? 0),
     title: String(raw['title'] ?? raw['Title'] ?? ''),
     description: desc != null && typeof desc === 'string' ? desc : undefined,
     researcherId: Number((raw['researcherId'] ?? raw['ResearcherId']) ?? 0),
-    createdAt: String(raw['createdAt'] ?? raw['CreatedAt'] ?? '')
+    createdAt: String(raw['createdAt'] ?? raw['CreatedAt'] ?? ''),
+    endsAt: endsAt != null && typeof endsAt === 'string' ? endsAt : undefined,
+    status: typeof status === 'number' ? status : (status != null ? Number(status) : undefined)
   };
 }
 
@@ -73,6 +78,11 @@ function toQuestionDto(raw: Record<string, unknown>): QuestionDto {
 export class SurveyApiService {
   private readonly apiUrl = environment.apiUrl;
 
+  /** Request options that skip auth so the backend treats the request as public (draft/closed/expired surveys get 403). */
+  private get publicSurveyContext(): { context: HttpContext } {
+    return { context: new HttpContext().set(SKIP_AUTH_FOR_PUBLIC_SURVEY, true) };
+  }
+
   constructor(private http: HttpClient) {}
 
   getSurveys(): Observable<SurveyDto[]> {
@@ -85,7 +95,28 @@ export class SurveyApiService {
   getSurvey(id: number): Observable<SurveyDto | null> {
     return this.http.get<unknown>(`${this.apiUrl}/api/surveys/${id}`).pipe(
       map((body) => (body && typeof body === 'object' ? toSurveyDto(body as Record<string, unknown>) : null)),
-      catchError(() => of(null))
+      catchError((err: HttpErrorResponse) => {
+        // 403 = survey not available to public (draft/closed or ended); surface API message
+        if (err.status === 403 && err.error && typeof err.error === 'object' && 'message' in err.error) {
+          const msg = (err.error as { message?: string }).message;
+          return throwError(() => ({ message: msg ?? 'This survey is not available.' }));
+        }
+        return of(null);
+      })
+    );
+  }
+
+  /** Get survey without auth so backend enforces active-only for public. Use for short URL / public survey page. */
+  getSurveyPublic(id: number): Observable<SurveyDto | null> {
+    return this.http.get<unknown>(`${this.apiUrl}/api/surveys/${id}`, this.publicSurveyContext).pipe(
+      map((body) => (body && typeof body === 'object' ? toSurveyDto(body as Record<string, unknown>) : null)),
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 403 && err.error && typeof err.error === 'object' && 'message' in err.error) {
+          const msg = (err.error as { message?: string }).message;
+          return throwError(() => ({ message: msg ?? 'This survey is not available.' }));
+        }
+        return of(null);
+      })
     );
   }
 
@@ -116,6 +147,19 @@ export class SurveyApiService {
     return this.http.get<unknown[]>(`${this.apiUrl}/api/surveys/${surveyId}/questions`).pipe(
       map((list) => (Array.isArray(list) ? list.map((q) => toQuestionDto(q as Record<string, unknown>)) : [])),
       catchError(() => of([]))
+    );
+  }
+
+  /** Get questions without auth (public survey). Surfaces 403 so caller can show "survey not available". */
+  getQuestionsPublic(surveyId: number): Observable<QuestionDto[]> {
+    return this.http.get<unknown[]>(`${this.apiUrl}/api/surveys/${surveyId}/questions`, this.publicSurveyContext).pipe(
+      map((list) => (Array.isArray(list) ? list.map((q) => toQuestionDto(q as Record<string, unknown>)) : [])),
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 403 && err.error && typeof err.error === 'object' && 'message' in err.error) {
+          return throwError(() => ({ message: (err.error as { message?: string }).message ?? 'This survey is not available.' }));
+        }
+        return of([]);
+      })
     );
   }
 
@@ -150,6 +194,20 @@ export class SurveyApiService {
     return this.http
       .get<SurveyPageDto[]>(`${this.apiUrl}/api/surveys/${surveyId}/pages`)
       .pipe(catchError(() => of([])));
+  }
+
+  /** Get pages without auth (public survey). Surfaces 403 so caller can show "survey not available". */
+  getPagesPublic(surveyId: number): Observable<SurveyPageDto[]> {
+    return this.http
+      .get<SurveyPageDto[]>(`${this.apiUrl}/api/surveys/${surveyId}/pages`, this.publicSurveyContext)
+      .pipe(
+        catchError((err: HttpErrorResponse) => {
+          if (err.status === 403 && err.error && typeof err.error === 'object' && 'message' in err.error) {
+            return throwError(() => ({ message: (err.error as { message?: string }).message ?? 'This survey is not available.' }));
+          }
+          return of([]);
+        })
+      );
   }
 
   getPage(surveyId: number, pageId: number): Observable<SurveyPageDto | null> {

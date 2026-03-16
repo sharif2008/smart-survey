@@ -12,4 +12,6 @@ public class CreateSurveyDto
 
     /// <summary>Optional end date/time for the survey.</summary>
     public DateTime? EndsAt { get; set; }
+    /// <summary>0 = Draft, 1 = Active, -1 = Closed. Defaults to 1 (Active) if not set.</summary>
+    public int? Status { get; set; }
 }
