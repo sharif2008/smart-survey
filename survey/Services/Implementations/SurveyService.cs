@@ -90,12 +90,17 @@ public class SurveyService : ISurveyService
 
     public async Task<bool> DeleteAsync(int id, int researcherId, bool isAdmin)
     {
-        var survey = await _db.Surveys.FindAsync(id).ConfigureAwait(false);
+        var survey = await _db.Surveys.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.Id == id).ConfigureAwait(false);
         if (survey == null)
             return false;
+
         if (!isAdmin && survey.ResearcherId != researcherId)
             return false;
-        _db.Surveys.Remove(survey);
+
+        if (survey.DeletedAt != null)
+            return false; // already soft-deleted
+
+        survey.DeletedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync().ConfigureAwait(false);
         return true;
     }

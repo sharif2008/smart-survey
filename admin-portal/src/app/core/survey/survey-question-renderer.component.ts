@@ -15,14 +15,20 @@ import { QuestionType } from '../api/survey-api.model';
   template: `
     <div class="mb-3">
       <label class="form-label">
-        {{ question().text }}
+        {{ question().text || 'Untitled question' }}
         @if (question().isRequired) {
           <span class="text-danger">*</span>
         }
       </label>
       @switch (question().type) {
         @case (QuestionType.Text) {
-          <input type="text" class="form-control" [ngModel]="value()" (ngModelChange)="valueChange.emit($event)" [placeholder]="question().text" />
+          <input
+            type="text"
+            class="form-control"
+            [ngModel]="value()"
+            (ngModelChange)="valueChange.emit($event)"
+            [placeholder]="question().text || 'Untitled question'"
+          />
         }
         @case (QuestionType.TextArea) {
           <textarea class="form-control" [ngModel]="value()" (ngModelChange)="valueChange.emit($event)" rows="3"></textarea>

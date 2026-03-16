@@ -14,6 +14,8 @@ public class Survey
     public DateTime? EndsAt { get; set; }
     /// <summary>When true, survey is manually closed and no longer accepting responses.</summary>
     public bool IsClosed { get; set; }
+    /// <summary>When set, survey is soft-deleted and excluded from all queries.</summary>
+    public DateTime? DeletedAt { get; set; }
 
     public User Researcher { get; set; } = null!;
     public ICollection<SurveyPage> Pages { get; set; } = new List<SurveyPage>();

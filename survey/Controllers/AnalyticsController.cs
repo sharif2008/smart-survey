@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SurveyApi.DTOs;
 using SurveyApi.Services;
+using SurveyApi.Services.Interfaces;
 
 namespace SurveyApi.Controllers;
 

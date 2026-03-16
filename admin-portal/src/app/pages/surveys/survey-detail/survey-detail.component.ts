@@ -116,6 +116,7 @@ export class SurveyDetailComponent implements OnInit {
   shareCopied = false;
   responseDetailModal: SurveyResponseDetailDto | null = null;
   questionResponsesModal: { questionId: number; questionText: string; items: { participantName: string; submittedAt: string; answerText: string }[] } | null = null;
+  exportingResponses = false;
 
   // --- Analytics helpers ---
   get hasAnalytics(): boolean {
@@ -331,13 +332,15 @@ export class SurveyDetailComponent implements OnInit {
       const qId = Number(questionId);
       for (const r of details) {
         const rawAnswers = getAnswers(r);
-        const a = rawAnswers.find((x: Record<string, unknown>) =>
-          Number(x?.questionId ?? x?.QuestionId ?? 0) === qId
-        ) as Record<string, unknown> | undefined;
+        const a = rawAnswers.find((x: Record<string, unknown>) => {
+          const qFromCamel = Number(x?.['questionId'] ?? 0);
+          const qFromPascal = Number(x?.['QuestionId'] ?? 0);
+          return (qFromCamel || qFromPascal) === qId;
+        }) as Record<string, unknown> | undefined;
         if (!a) continue;
         const participantName = (r as any).participantName ?? (r as any).ParticipantName ?? '—';
         const submittedAt = (r as any).submittedAt ?? (r as any).SubmittedAt ?? '';
-        const answerText = a?.responseText ?? a?.ResponseText ?? '—';
+        const answerText = (a as any)?.responseText ?? (a as any)?.ResponseText ?? '—';
         items.push({
           participantName: participantName != null ? String(participantName) : '—',
           submittedAt: String(submittedAt),
@@ -363,6 +366,33 @@ export class SurveyDetailComponent implements OnInit {
 
   closeQuestionResponses(): void {
     this.questionResponsesModal = null;
+  }
+
+  /** Export all responses for this survey as CSV or JSON and trigger a browser download. */
+  exportResponses(format: 'csv' | 'json'): void {
+    if (!this.surveyId || this.exportingResponses) return;
+    this.exportingResponses = true;
+    const fmt = format === 'json' ? 'json' : 'csv';
+    const fileExt = fmt === 'json' ? 'json' : 'csv';
+    const fileName = `survey-${this.surveyId}-responses.${fileExt}`;
+
+    this.api.exportResponses(this.surveyId, fmt).subscribe({
+      next: (blob) => {
+        this.exportingResponses = false;
+        if (!(blob instanceof Blob)) return;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.exportingResponses = false;
+      }
+    });
   }
 
   openEditSurvey(): void {

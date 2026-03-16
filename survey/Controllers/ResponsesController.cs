@@ -56,19 +56,4 @@ public class ResponsesController : ControllerBase
             return NotFound();
         return Ok(list);
     }
-
-    /// <summary>GET /api/surveys/{surveyId}/responses/details — Detailed responses with all answers (Admin: any; Researcher: own surveys).</summary>
-    [HttpGet("surveys/{surveyId:int}/responses/details")]
-    [Authorize(Roles = "Admin,Researcher")]
-    [ProducesResponseType(typeof(IEnumerable<SurveyResponseDetailDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetDetailedBySurveyId(int surveyId)
-    {
-        var (userId, isAdmin) = GetCurrentUser();
-        var list = await _responseService.GetDetailedBySurveyIdAsync(surveyId, userId, isAdmin).ConfigureAwait(false);
-        if (list == null)
-            return NotFound();
-        return Ok(list);
-    }
 }

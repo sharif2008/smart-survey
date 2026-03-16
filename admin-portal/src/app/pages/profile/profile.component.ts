@@ -38,8 +38,10 @@ export class ProfileComponent implements OnInit {
         setTimeout(() => {
           this.saved = false;
         }, 2000);
-      } else {
+      } else if (!result.success && 'error' in result) {
         alert(result.error || 'Failed to save profile.');
+      } else {
+        alert('Failed to save profile.');
       }
     });
   }

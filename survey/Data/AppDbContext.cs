@@ -50,6 +50,7 @@ public class AppDbContext : DbContext
                 .WithMany(u => u.Surveys)
                 .HasForeignKey(e => e.ResearcherId)
                 .OnDelete(DeleteBehavior.Restrict);
+            entity.HasQueryFilter(s => s.DeletedAt == null);
         });
 
         modelBuilder.Entity<SurveyPage>(entity =>

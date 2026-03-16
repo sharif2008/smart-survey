@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SurveyApi.DTOs.Survey;
 using SurveyApi.DTOs.Response;
+using System.Text;
+using System.Text.Json;
 using SurveyApi.Services;
 using SurveyApi.Services.Interfaces;
 
@@ -14,11 +16,13 @@ public class SurveysController : ControllerBase
 {
     private readonly ISurveyService _surveyService;
     private readonly IResponseService _responseService;
+    private readonly IExportService _exportService;
 
-    public SurveysController(ISurveyService surveyService, IResponseService responseService)
+    public SurveysController(ISurveyService surveyService, IResponseService responseService, IExportService exportService)
     {
         _surveyService = surveyService;
         _responseService = responseService;
+        _exportService = exportService;
     }
 
     private (int? userId, bool isAdmin) GetCurrentUser()
@@ -39,6 +43,107 @@ public class SurveysController : ControllerBase
         var (userId, isAdmin) = GetCurrentUser();
         var list = await _surveyService.GetAllAsync(userId, isAdmin).ConfigureAwait(false);
         return Ok(list);
+    }
+
+    /// <summary>
+    /// GET /api/surveys/{surveyId}/responses/export?format=csv|json
+    /// Export all responses for a survey as CSV or JSON. Admins can export any survey; Researchers only their own.
+    /// </summary>
+    [HttpGet("{surveyId:int}/responses/export")]
+    [Authorize(Roles = "Admin,Researcher")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ExportResponses(int surveyId, [FromQuery] string? format = "csv")
+    {
+        var (userId, isAdmin) = GetCurrentUser();
+        if (!userId.HasValue && !isAdmin)
+            return Unauthorized();
+
+        var normalizedFormat = (format ?? "csv").Trim().ToLowerInvariant();
+
+        // JSON export: reuse detailed DTOs for structure
+        if (normalizedFormat == "json")
+        {
+            var details = await _responseService.GetDetailedBySurveyIdAsync(surveyId, userId, isAdmin).ConfigureAwait(false);
+            if (details == null)
+                return NotFound();
+
+            var json = JsonSerializer.Serialize(details, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true
+            });
+            var bytes = Encoding.UTF8.GetBytes(json);
+            var fileNameJson = $"survey-{surveyId}-responses.json";
+            return File(bytes, "application/json", fileNameJson);
+        }
+
+        // CSV export: use detailed DTOs to build a wide table (one row per response, one column per question)
+        {
+            var details = await _responseService.GetDetailedBySurveyIdAsync(surveyId, userId, isAdmin).ConfigureAwait(false);
+            if (details == null)
+                return NotFound();
+
+            // Collect all distinct questions across responses
+            var questionMap = new Dictionary<int, string>();
+            foreach (var r in details)
+            {
+                foreach (var a in r.Answers)
+                {
+                    if (!questionMap.ContainsKey(a.QuestionId))
+                        questionMap[a.QuestionId] = a.QuestionText;
+                }
+            }
+
+            var orderedQuestions = questionMap
+                .OrderBy(q => q.Key)
+                .ToList();
+
+            var sb = new StringBuilder();
+            // Header
+            sb.Append("SurveyId,ResponseId,ParticipantName,SubmittedAtUtc,TotalTimeSeconds");
+            foreach (var q in orderedQuestions)
+            {
+                sb.Append(',');
+                sb.Append('"');
+                sb.Append($"Q{q.Key}: {q.Value.Replace("\"", "\"\"")}");
+                sb.Append('"');
+            }
+            sb.AppendLine();
+
+            // Rows
+            foreach (var r in details)
+            {
+                sb.Append(r.SurveyId);
+                sb.Append(',');
+                sb.Append(r.Id);
+                sb.Append(',');
+                sb.Append('"');
+                sb.Append((r.ParticipantName ?? string.Empty).Replace("\"", "\"\""));
+                sb.Append('"');
+                sb.Append(',');
+                sb.Append(r.SubmittedAt.ToUniversalTime().ToString("O"));
+                sb.Append(',');
+                sb.Append(r.TotalTimeSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+                var answerByQuestion = r.Answers.ToDictionary(a => a.QuestionId, a => a.ResponseText ?? string.Empty);
+                foreach (var q in orderedQuestions)
+                {
+                    sb.Append(',');
+                    var value = answerByQuestion.TryGetValue(q.Key, out var v) ? v : string.Empty;
+                    sb.Append('"');
+                    sb.Append(value.Replace("\"", "\"\""));
+                    sb.Append('"');
+                }
+
+                sb.AppendLine();
+            }
+
+            var bytes = Encoding.UTF8.GetBytes(sb.ToString());
+            var fileNameCsv = $"survey-{surveyId}-responses.csv";
+            return File(bytes, "text/csv", fileNameCsv);
+        }
     }
 
     /// <summary>GET /api/surveys/{surveyId}/responses/details — Full response details with answers (Admin/Researcher, own surveys for Researcher).</summary>

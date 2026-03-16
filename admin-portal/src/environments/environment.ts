@@ -7,8 +7,8 @@ import packageInfo from '../../package.json';
 export const environment = {
   appVersion: packageInfo.version,
   production: false,
-  // Use empty string so requests go to same origin and proxy.conf.json forwards /api to the backend (avoids CORS in dev)
-  apiUrl: ''
+  // Backend Survey API (CORS allows localhost). Use this so /api/surveys/... and /api/profile etc. hit the server.
+  apiUrl: 'http://localhost:5008'
 };
 
 /*

@@ -125,6 +125,14 @@ export class SurveyApiService {
       .pipe(catchError(() => of([])));
   }
 
+  /** Download responses export (CSV or JSON) as a file. */
+  exportResponses(surveyId: number, format: 'csv' | 'json'): Observable<Blob> {
+    const fmt = format === 'json' ? 'json' : 'csv';
+    return this.http.get(`${this.apiUrl}/api/surveys/${surveyId}/responses/export?format=${fmt}`, {
+      responseType: 'blob'
+    });
+  }
+
   getResponseDetails(surveyId: number): Observable<SurveyResponseDetailDto[]> {
     return this.http
       .get<SurveyResponseDetailDto[]>(`${this.apiUrl}/api/surveys/${surveyId}/responses/details`)
